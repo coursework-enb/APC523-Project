@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from typing import TypeAlias
 
 from numpy import float64, zeros
 from numpy.typing import NDArray
 
-Grid2D = NDArray[float64]
+Grid2D: TypeAlias = NDArray[float64]
 
 
 class SpatialDiscretizationStrategy(ABC):

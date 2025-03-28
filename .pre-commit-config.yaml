@@ -54,4 +54,5 @@ repos:
       entry: nox
       language: system
       types: [python]
+      pass_filenames: false
       files: ^(src/|noxfile.py|requirements.txt)

@@ -1,5 +1,8 @@
-from .core import (NavierStokesSolver2D, SpatialDiscretizationStrategy,
-                   TimeIntegratorStrategy)
+from .core import (
+    NavierStokesSolver2D,
+    SpatialDiscretizationStrategy,
+    TimeIntegratorStrategy,
+)
 
 __all__ = [
     "NavierStokesSolver2D",
