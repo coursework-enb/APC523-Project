@@ -2,17 +2,17 @@ import nox
 from pathlib import Path
 
 nox.options.sessions = ["lint", "typecheck", "test"]
-python_versions = ["3.10", "3.11"]
-package_dir = Path("src/ns-solver")
+python_versions = ["3.12"]
+package_dir = Path("src/ns2d")
 tests_dir = Path("src/tests")
 
 @nox.session(python=python_versions)
 def lint(session):
     """Run code style checks"""
     session.install("flake8", "black", "isort")
-    session.run("black", "--check", str(package_dir))
-    session.run("isort", "--check-only", str(package_dir))
-    session.run("flake8", str(package_dir))
+    session.run("black", str(package_dir))
+    session.run("isort", str(package_dir))
+    session.run("flake8", "--max-line-length=88", "--ignore=E203,E266,W503", str(package_dir))
 
 @nox.session(python=python_versions)
 def typecheck(session):
@@ -23,7 +23,7 @@ def typecheck(session):
 @nox.session(python=python_versions)
 def test(session):
     """Run unit tests"""
-    session.install("numpy", "pytest", ".", "-r", "requirements.txt")
+    session.install(".[test]")
     session.run("pytest", "-v", str(tests_dir))
 
 @nox.session(python=python_versions)

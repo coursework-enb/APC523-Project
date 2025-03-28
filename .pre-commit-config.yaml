@@ -12,28 +12,33 @@ repos:
   hooks:
     - id: black
       args: [--safe, --quiet]
-      files: ^src/ns-solver/
+      files: ^src/ns2d/
 
 - repo: https://github.com/PyCQA/isort
   rev: 5.13.2
   hooks:
     - id: isort
       args: [--profile=black]
-      files: ^src/ns-solver/
+      files: ^src/ns2d/
 
 - repo: https://github.com/PyCQA/flake8
   rev: 7.0.0
   hooks:
     - id: flake8
-      files: ^src/ns-solver/
-      args: [--config=setup.cfg]
+      files: ^src/ns2d/
+      args: [
+        "--max-line-length=88",
+        "--exclude=.git,__pycache__,docs/source/conf.py,old,build,dist,venv,.venv",
+        "--ignore=E203,E266,E501,W503",
+        "--max-complexity=10"
+      ]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v1.9.0
   hooks:
     - id: mypy
       args: [--strict, --ignore-missing-imports]
-      files: ^src/ns-solver/
+      files: ^src/ns2d/
       exclude: tests/|docs/
 
 - repo: https://github.com/pre-commit/mirrors-prettier

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ns2d"
+version = "0.1.0"
+description = "2D Navier-Stokes Numerical Solver"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "Esteban Nocet-Binois", email = "en4624@princeton.edu"}
+]
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]

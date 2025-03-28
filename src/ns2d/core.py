@@ -1,29 +1,42 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+
 from numpy import float64, zeros
 from numpy.typing import NDArray
 
 Grid2D = NDArray[float64]
 
+
 class SpatialDiscretizationStrategy(ABC):
     @abstractmethod
-    def __call__(self, u: Grid2D, v: Grid2D, p: Grid2D, dx: float, dy: float, nu: float) -> tuple[Grid2D, Grid2D]:
+    def __call__(
+        self, u: Grid2D, v: Grid2D, p: Grid2D, dx: float, dy: float, nu: float
+    ) -> tuple[Grid2D, Grid2D]:
         """Discretize spatial derivatives for momentum equations"""
         pass
+
 
 class TimeIntegratorStrategy(ABC):
     @abstractmethod
     def advance_time(
-            self, u: Grid2D, v: Grid2D, p_prev: Grid2D, dt: float,
-            method: SpatialDiscretizationStrategy,                 # inject dependency
-            dx: float, dy: float, nu: float                        # with necessary inputs for call
-        ) -> tuple[Grid2D, Grid2D]:
+        self,
+        u: Grid2D,
+        v: Grid2D,
+        p_prev: Grid2D,
+        dt: float,
+        method: SpatialDiscretizationStrategy,  # inject dependency
+        dx: float,
+        dy: float,
+        nu: float,  # with necessary inputs for call
+    ) -> tuple[Grid2D, Grid2D]:
         """Calculate intermediate velocities without pressure gradient"""
         pass
+
 
 @dataclass
 class NavierStokesSolver2D(ABC):
     """Context class that uses strategies for time integration, spatial discretization, and implements pressure solution"""
+
     nx: int
     ny: int
     dx: float
@@ -31,21 +44,23 @@ class NavierStokesSolver2D(ABC):
     dt: float
     nu: float
     integrator: TimeIntegratorStrategy
-    discrete_navier_stokes: SpatialDiscretizationStrategy 
+    discrete_navier_stokes: SpatialDiscretizationStrategy
     u: Grid2D = field(init=False)
     v: Grid2D = field(init=False)
     p: Grid2D = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.u = zeros((self.nx, self.ny), dtype=float64)
         self.v = zeros((self.nx, self.ny), dtype=float64)
         self.p = zeros((self.nx, self.ny), dtype=float64)
-    
+
     def set_time_integrator(self, integrator: TimeIntegratorStrategy) -> None:
         """Change the time integration strategy at runtime"""
         self.integrator = integrator
 
-    def set_spatial_discretizer(self, discretizer: SpatialDiscretizationStrategy) -> None:
+    def set_spatial_discretizer(
+        self, discretizer: SpatialDiscretizationStrategy
+    ) -> None:
         """Change the spatial discretization strategy at runtime"""
         self.discrete_navier_stokes = discretizer
 
@@ -96,12 +111,17 @@ class NavierStokesSolver2D(ABC):
         """
         if initialize:
             self.initialize_fields()
-        
+
         for step in range(num_steps):
             self.u, self.v = self.integrator.advance_time(
-                self.u, self.v, self.p, self.dt,
+                self.u,
+                self.v,
+                self.p,
+                self.dt,
                 self.discrete_navier_stokes,
-                self.dx, self.dy, self.nu
+                self.dx,
+                self.dy,
+                self.nu,
             )
             self.solve_poisson()
             self.update_velocity()
