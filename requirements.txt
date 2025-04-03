@@ -1,4 +1,4 @@
--e file:///home/en4624/ghorg/coursework-enb/APC523-Project
+-e git+https://github.com/coursework-enb/APC523-Project.git#egg=ns2d
 alabaster==1.0.0
 annotated-types==0.7.0
 anyio==4.9.0
