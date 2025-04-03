@@ -12,8 +12,10 @@ For development purposes
   uv venv .venv --python 3.12.9
   source .venv/bin/activate
   uv pip install -r requirements.txt
-  uv pip install -e .
   ```
+  Notes:
+  + The package `ns2d` is already installed in editable mode
+  + To install `mpi4py`, make sure you have the `mpicc` binary (from OpenMPI or MPICH) and that it is in your system's `PATH`
 * Set up Git hooks
   ```
   pre-commit install
