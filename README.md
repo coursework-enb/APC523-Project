@@ -7,7 +7,7 @@ For development purposes
   git clone git@github.com:coursework-enb/APC523-Project.git
   cd APC523-Project
   ```
-* Reproduce the Python enviroment
+* Reproduce the Python environment
   ```
   uv venv .venv --python 3.12.9
   source .venv/bin/activate
