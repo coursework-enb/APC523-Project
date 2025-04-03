@@ -2,6 +2,8 @@ import nox
 from pathlib import Path
 
 nox.options.sessions = ["typecheck", "test"]
+nox.options.default_venv_backend = "uv|virtualenv"
+
 python_versions = ["3.12"]
 package_dir = Path("src/ns2d")
 tests_dir = Path("src/tests")
