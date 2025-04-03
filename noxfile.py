@@ -26,6 +26,14 @@ def test(session):
     session.install(".[test]")
     session.run("pytest", "-v", str(tests_dir))
 
+@nox.session
+def precommits(session):
+    """Run pre-commits"""
+    session.install("pre-commit")
+    session.run("pre-commit", "install")
+    args = session.posargs or ["--all-files"]
+    session.run("pre-commit", "run", *args)
+
 @nox.session(python=python_versions)
 def docs(session):
     """Build documentation"""
