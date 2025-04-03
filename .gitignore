@@ -111,3 +111,8 @@ ipython_config.py
 *.thm
 *.loe
 *.lol
+
+
+# Miscellaneous
+# -------------
+node_modules/
