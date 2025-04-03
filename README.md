@@ -11,3 +11,6 @@ uv pip install -r requirements.txt
 uv pip install -e .
 pre-commit install
 ```
+```
+npm install --save-dev prettier@4.0.0-alpha.8 prettier-plugin-latex
+```
