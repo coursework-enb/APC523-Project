@@ -59,9 +59,7 @@ class NavierStokesSolver2D(ABC):
         """Change the time integration strategy at runtime"""
         self.integrator = integrator
 
-    def set_spatial_discretizer(
-        self, discretizer: SpatialDiscretizationStrategy
-    ) -> None:
+    def set_spatial_discretizer(self, discretizer: SpatialDiscretizationStrategy) -> None:
         """Change the spatial discretization strategy at runtime"""
         self.discrete_navier_stokes = discretizer
 

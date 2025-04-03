@@ -79,6 +79,7 @@ nodeenv==1.9.1
 notebook==7.3.3
 notebook-shim==0.2.4
 nox==2025.2.9
+ns2d @ file:///home/en4624/ghorg/coursework-enb/APC523-Project
 numpy==2.2.4
 overrides==7.7.0
 packaging==24.2
