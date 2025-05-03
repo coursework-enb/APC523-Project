@@ -13,7 +13,9 @@ authors = [
     {name = "Kristin Paragian", email = "kparagian@princeton.edu"}
 ]
 dependencies = [
-    "numpy>=1.24",
+    "numpy>=1.26",
+    "numba>=0.59",
+    "typing-extensions>=4.0",
 ]
 
 [project.optional-dependencies]
