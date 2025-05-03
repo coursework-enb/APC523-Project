@@ -94,7 +94,13 @@ class NavierStokesSolver2D(ABC):
         """
         raise NotImplementedError("Validation function not implemented")
 
-    def run_simulation(self, num_steps: int, initialize: bool = True) -> None:
+    def run_simulation(
+        self,
+        num_steps: int,
+        initialize: bool = True,
+        validate: bool = False,
+        benchmark: str = "Taylor-Green Vortex",
+    ) -> None:
         """Run the simulation for a specified number of time steps.
 
         :param num_steps: Number of time steps to simulate
@@ -115,7 +121,9 @@ class NavierStokesSolver2D(ABC):
             )
             self.solve_poisson()
             self.update_velocity()
-            # Optional: Compute vorticity for validation or visualization
-            if step % 10 == 0:
+
+            if validate and step % 10 == 0:
                 self.compute_vorticity()
-        self.validate("Taylor-Green Vortex")  # Example validation
+
+        if validate:
+            self.validate(benchmark)
