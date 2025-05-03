@@ -21,8 +21,10 @@ test = ["pytest>=7.0"]
 
 [tool.ruff]
 line-length = 90
-extend-select = ["B", "I", "RUF", "UP", "D"]
 include = ["src/ns2d/**/*.py", "src/ns2d/**/*.pyi", "src/ns2d/**/*.ipynb"]
+
+[tool.ruff.lint]
+extend-select = ["B", "I", "RUF", "UP"]
 
 [tool.mypy]
 strict = true

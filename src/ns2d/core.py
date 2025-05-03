@@ -65,29 +65,22 @@ class NavierStokesSolver2D(ABC):
 
     @abstractmethod
     def initialize_fields(self) -> None:
-        """
-        Initialize velocity and pressure fields.
-        """
+        """Initialize velocity and pressure fields."""
         raise NotImplementedError("Initialization not implemented")
 
     @abstractmethod
     def solve_poisson(self) -> None:
-        """
-        Solve the pressure Poisson equation
-        """
+        """Solve the pressure Poisson equation"""
         raise NotImplementedError("Poisson solver not implemented")
 
     @abstractmethod
     def update_velocity(self) -> None:
-        """
-        Update velocity fields based on the pressure correction from the Poisson solver.
-        """
+        """Update velocity fields based on the pressure correction from the Poisson solver."""
         raise NotImplementedError("Velocity update function not implemented")
 
     @abstractmethod
     def compute_vorticity(self) -> Grid2D:
-        """
-        Compute vorticity for validation purposes.
+        """Compute vorticity for validation purposes.
 
         :return: A 2D list representing the vorticity field.
         """
@@ -95,16 +88,14 @@ class NavierStokesSolver2D(ABC):
 
     @abstractmethod
     def validate(self, benchmark: str) -> None:
-        """
-        Validate the solver against benchmark problems like Taylor-Green vortex or lid-driven cavity.
+        """Validate the solver against benchmark problems like Taylor-Green vortex or lid-driven cavity.
 
         :param benchmark: The benchmark problem to validate against
         """
         raise NotImplementedError("Validation function not implemented")
 
     def run_simulation(self, num_steps: int, initialize: bool = True) -> None:
-        """
-        Run the simulation for a specified number of time steps.
+        """Run the simulation for a specified number of time steps.
 
         :param num_steps: Number of time steps to simulate
         """
