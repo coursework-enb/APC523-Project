@@ -18,18 +18,7 @@ def compute_fd_rhs(
 ) -> tuple[Grid2D, Grid2D]:
     """
     Compute the right-hand side of the momentum equations using central finite difference.
-
-    Args:
-        u (Grid2D): Velocity component in x-direction.
-        v (Grid2D): Velocity component in y-direction.
-        p (Grid2D): Pressure field.
-        dx (float): Grid spacing in x-direction.
-        dy (float): Grid spacing in y-direction.
-        nu (float): Kinematic viscosity.
-        include_pressure (bool): Whether to include the pressure gradient term (default: True).
-
-    Returns:
-        tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
+    Numba-optimized implementation.
     """
     nx, ny = u.shape
     du_dt = np.zeros_like(u)
@@ -95,18 +84,7 @@ def compute_fd_upwind_rhs(
 ) -> tuple[Grid2D, Grid2D]:
     """
     Compute the right-hand side of the momentum equations using upwind finite difference for convection.
-
-    Args:
-        u (Grid2D): Velocity component in x-direction.
-        v (Grid2D): Velocity component in y-direction.
-        p (Grid2D): Pressure field.
-        dx (float): Grid spacing in x-direction.
-        dy (float): Grid spacing in y-direction.
-        nu (float): Kinematic viscosity.
-        include_pressure (bool): Whether to include the pressure gradient term (default: True).
-
-    Returns:
-        tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
+    Numba-optimized implementation.
     """
     nx, ny = u.shape
     du_dt = np.zeros_like(u)
@@ -180,18 +158,7 @@ def compute_fv_rhs(
 ) -> tuple[Grid2D, Grid2D]:
     """
     Compute the right-hand side of the momentum equations using finite volume method.
-
-    Args:
-        u (Grid2D): Velocity component in x-direction.
-        v (Grid2D): Velocity component in y-direction.
-        p (Grid2D): Pressure field.
-        dx (float): Grid spacing in x-direction.
-        dy (float): Grid spacing in y-direction.
-        nu (float): Kinematic viscosity.
-        include_pressure (bool): Whether to include the pressure gradient term (default: True).
-
-    Returns:
-        tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
+    Numba-optimized implementation.
     """
     nx, ny = u.shape
     du_dt = np.zeros_like(u)
