@@ -103,6 +103,8 @@ def validate_against_benchmark(
         return error_ke
 
     elif benchmark == "Lid-Driven Cavity":
+        assert current_time == 2.5 and reference_min_stream == -0.061076605
+
         min_stream_func = float(np.min(stream_func))
         error_stream: float = abs(min_stream_func - reference_min_stream)
 
