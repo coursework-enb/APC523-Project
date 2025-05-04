@@ -133,7 +133,6 @@ class NavierStokesSolver2D(ABC):
 
         return stream_func
 
-    @abstractmethod
     def validate(self, benchmark: str, current_time: float) -> None:
         """
         This method compares the solver's output (e.g., kinetic energy for Taylor-Green Vortex or minimum stream function for Lid-Driven Cavity) against reference or analytical solutions for the specified benchmark problem.
@@ -151,6 +150,7 @@ class NavierStokesSolver2D(ABC):
             self.compute_kinetic_energy(),
             self.solve_stream_function(),
         )
+        # TODO: add visual for the error at each cell
 
     def run_simulation(
         self,
