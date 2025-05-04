@@ -7,6 +7,7 @@ from ns2d import SpatialDiscretizationStrategy, TimeIntegratorStrategy
 
 from .utils import Grid2D
 
+
 @njit(parallel=True)
 def euler_step(
     u: Grid2D, v: Grid2D, du_dt: Grid2D, dv_dt: Grid2D, dt: float
