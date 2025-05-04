@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from numpy import float64, zeros
+from numpy import float64, sum, zeros
 
+from .benchmarks import validate_against_benchmark
 from .utils import Grid2D
 from .vorticity import finite_difference_vorticity
 
@@ -77,6 +78,16 @@ class NavierStokesSolver2D(ABC):
         """Update velocity fields based on the pressure correction from the Poisson solver."""
         raise NotImplementedError("Velocity update function not implemented")
 
+    def compute_kinetic_energy(self) -> float:
+        """
+        Compute the kinetic energy of the velocity field, scaled by grid cell area.
+
+        :return: Kinetic energy value
+        """
+        cell_area = self.dx * self.dy
+        ke: float = 0.5 * cell_area * sum(self.u**2 + self.v**2)
+        return ke
+
     def compute_vorticity(self, order: int = 2) -> Grid2D:
         """Compute vorticity for validation purposes.
 
@@ -87,20 +98,59 @@ class NavierStokesSolver2D(ABC):
         )
         return result
 
+    def solve_stream_function(self) -> Grid2D:
+        """
+        Compute the stream function by solving the Poisson equation -∇²ψ = ω using the class's Poisson solver.
+        Vorticity is used as the source term.
+
+        Returns:
+            A 2D array representing the stream function field
+        """
+        vorticity = self.compute_vorticity()
+
+        temp_p = self.p.copy()
+        self.p = vorticity
+        self.solve_poisson()
+        stream_func = self.p.copy()
+
+        # Restore original pressure field
+        # TODO: revise solve_poisson such that we can input/output the pressure without mutation (safer)
+        self.p = temp_p
+
+        # No-flow boundaries
+        stream_func[:, 0] = 0  # Bottom wall
+        stream_func[:, -1] = 0  # Top wall
+        stream_func[0, :] = 0  # Left wall
+        stream_func[-1, :] = 0  # Right wall
+
+        return stream_func
+
     @abstractmethod
-    def validate(self, benchmark: str) -> None:
-        """Validate the solver against benchmark problems like Taylor-Green vortex or lid-driven cavity.
+    def validate(self, benchmark: str, current_time: float) -> None:
+        """
+        This method compares the solver's output (e.g., kinetic energy for Taylor-Green Vortex or minimum stream function for Lid-Driven Cavity) against reference or analytical solutions for the specified benchmark problem.
 
         :param benchmark: The benchmark problem to validate against
         """
-        raise NotImplementedError("Validation function not implemented")
+        _ = validate_against_benchmark(
+            benchmark,
+            self.dx,
+            self.dy,
+            self.nx,
+            self.ny,
+            self.nu,
+            current_time,
+            self.compute_kinetic_energy(),
+            self.solve_stream_function(),
+        )
 
     def run_simulation(
         self,
         num_steps: int,
+        end_time: float = 2.5,
         initialize: bool = True,
         validate: bool = False,
-        benchmark: str = "Taylor-Green Vortex",
+        benchmark: str = "Lid-Driven Cavity",
     ) -> None:
         """Run the simulation for a specified number of time steps.
 
@@ -109,7 +159,12 @@ class NavierStokesSolver2D(ABC):
         if initialize:
             self.initialize_fields()
 
+        current_time = 0.0
         for step in range(num_steps):
+            current_time = step * self.dt
+            if current_time > end_time:
+                break
+
             self.u, self.v = self.integrator.advance_time(
                 self.u,
                 self.v,
@@ -127,4 +182,4 @@ class NavierStokesSolver2D(ABC):
                 self.compute_vorticity()
 
         if validate:
-            self.validate(benchmark)
+            self.validate(benchmark, current_time)
