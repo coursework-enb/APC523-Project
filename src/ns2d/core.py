@@ -96,6 +96,7 @@ class NavierStokesSolver2D(ABC):
         result: Grid2D = finite_difference_vorticity(
             self.u, self.v, self.dx, self.dy, order=order
         )
+        # We could also compute it using the stream function field (from below) and computing the Laplacian of psi using finite differences
         return result
 
     def solve_stream_function(self) -> Grid2D:
