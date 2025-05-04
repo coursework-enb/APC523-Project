@@ -1,3 +1,5 @@
+# TODO: Enforce boundary conditions consistently, depending on bc_case
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
