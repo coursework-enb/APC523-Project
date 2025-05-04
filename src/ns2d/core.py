@@ -5,6 +5,8 @@ from typing import TypeAlias
 from numpy import float64, zeros
 from numpy.typing import NDArray
 
+from .vorticity import finite_difference_vorticity
+
 Grid2D: TypeAlias = NDArray[float64]
 
 
@@ -79,12 +81,15 @@ class NavierStokesSolver2D(ABC):
         raise NotImplementedError("Velocity update function not implemented")
 
     @abstractmethod
-    def compute_vorticity(self) -> Grid2D:
+    def compute_vorticity(self, order: int = 2) -> Grid2D:
         """Compute vorticity for validation purposes.
 
         :return: A 2D list representing the vorticity field.
         """
-        raise NotImplementedError("Vorticity computation function not implemented")
+        result: Grid2D = finite_difference_vorticity(
+            self.u, self.v, self.dx, self.dy, order=order
+        )
+        return result
 
     @abstractmethod
     def validate(self, benchmark: str) -> None:
