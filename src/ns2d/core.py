@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TypeAlias
 
 from numpy import float64, zeros
-from numpy.typing import NDArray
+
+from ns2d import Grid2D
 
 from .vorticity import finite_difference_vorticity
-
-Grid2D: TypeAlias = NDArray[float64]
 
 
 class SpatialDiscretizationStrategy(ABC):

@@ -1,5 +1,4 @@
 from .core import (
-    Grid2D,
     NavierStokesSolver2D,
     SpatialDiscretizationStrategy,
     TimeIntegratorStrategy,
@@ -14,6 +13,7 @@ from .spatial_discretization import (
     FiniteDifferenceUpwindDiscretizer,
     FiniteVolumeDiscretizer,
 )
+from .utils import Grid2D
 
 __all__ = [
     "EulerIntegrator",
