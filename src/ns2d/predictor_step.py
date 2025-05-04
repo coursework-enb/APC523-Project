@@ -14,16 +14,7 @@ def euler_step(
 ) -> tuple[Grid2D, Grid2D]:
     """
     Perform a forward Euler time step for velocity fields.
-
-    Args:
-        u (Grid2D): Current x-velocity field.
-        v (Grid2D): Current y-velocity field.
-        du_dt (Grid2D): Time derivative of x-velocity.
-        dv_dt (Grid2D): Time derivative of y-velocity.
-        dt (float): Time step size.
-
-    Returns:
-        tuple[Grid2D, Grid2D]: Updated (u, v) velocity fields.
+    Numba-optimized implementation.
     """
     nx, ny = u.shape
     u_new = np.zeros_like(u)
@@ -53,16 +44,7 @@ def rk4_step(
 ) -> tuple[Grid2D, Grid2D]:
     """
     Perform a fourth-order Runge-Kutta (RK4) time step for velocity fields.
-
-    Args:
-        u (Grid2D): Current x-velocity field.
-        v (Grid2D): Current y-velocity field.
-        k1_u, k2_u, k3_u, k4_u (Grid2D): RK stages for x-velocity derivative.
-        k1_v, k2_v, k3_v, k4_v (Grid2D): RK stages for y-velocity derivative.
-        dt (float): Time step size.
-
-    Returns:
-        tuple[Grid2D, Grid2D]: Updated (u, v) velocity fields.
+    Numba-optimized implementation.
     """
     nx, ny = u.shape
     u_new = np.zeros_like(u)
@@ -94,19 +76,7 @@ def semi_implicit_step(
     """
     Perform a semi-implicit time step for velocity fields, treating advection explicitly
     and diffusion implicitly.
-
-    Args:
-        u (Grid2D): Current x-velocity field.
-        v (Grid2D): Current y-velocity field.
-        adv_u (Grid2D): Advection term for x-velocity (explicit).
-        adv_v (Grid2D): Advection term for y-velocity (explicit).
-        dt (float): Time step size.
-        nu (float): Kinematic viscosity.
-        dx (float): Grid spacing in x-direction.
-        dy (float): Grid spacing in y-direction.
-
-    Returns:
-        tuple[Grid2D, Grid2D]: Updated (u, v) velocity fields.
+    Numba-optimized implementation.
     """
     nx, ny = u.shape
     u_new = np.zeros_like(u)
