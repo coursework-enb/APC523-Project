@@ -64,7 +64,6 @@ class NavierStokesSolver2D(ABC):
         """Change the spatial discretization strategy at runtime"""
         self.discrete_navier_stokes = discretizer
 
-    @abstractmethod
     def initialize_fields(self, benchmark: str | None) -> None:
         """Initialize velocity and pressure fields."""
         if benchmark is not None:
