@@ -80,7 +80,6 @@ class NavierStokesSolver2D(ABC):
         """Update velocity fields based on the pressure correction from the Poisson solver."""
         raise NotImplementedError("Velocity update function not implemented")
 
-    @abstractmethod
     def compute_vorticity(self, order: int = 2) -> Grid2D:
         """Compute vorticity for validation purposes.
 
