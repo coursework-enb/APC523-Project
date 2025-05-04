@@ -8,7 +8,7 @@ from .predictor_step import (
     PredictorCorrectorIntegrator,
     RK4Integrator,
 )
-from .spatial_discretization import (
+from .rhs_discretization import (
     FiniteDifferenceDiscretizer,
     FiniteDifferenceUpwindDiscretizer,
     FiniteVolumeDiscretizer,
