@@ -1,0 +1,63 @@
+\documentclass[12pt]{article}
+
+\usepackage{geometry}
+\geometry{margin=1in}
+
+% Packages for mathematics and physics
+\usepackage{amsmath, amssymb, mathtools}
+\usepackage{physics}
+\usepackage{siunitx} % For units and numerical formatting
+\usepackage{algorithm, algpseudocode}
+
+% Typography and formatting
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{sourcecodepro} % Monospaced font for code/URLs
+\usepackage{sourceserifpro} % Serif font for text and math
+\usepackage{euler} % Greek and calligraphic math font
+\usepackage{mnsymbol} % Mathematical symbols
+
+% Headings and captions for easy scanning
+\usepackage[small]{caption}
+\usepackage{sectsty}
+\sectionfont{\large\bfseries}
+\subsectionfont{\normalsize\bfseries}
+
+% Theorem and definition environments
+\usepackage{amsthm}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\usepackage{natbib}
+\bibliographystyle{chicago}
+
+\title{\textbf{Numerical Algorithms}}
+\author{Esteban, Marie Joe, Amir, Kristin}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+This document presents numerical algorithms and methods for solving 2d incompressible Navier-stokes, with detailed sections on right- and left-hand side formulations, Poisson solver, and validation techniques.
+\end{abstract}
+
+\input{tex/rhs}
+
+\input{tex/lhs}
+
+\input{tex/poisson}
+
+\input{tex/validation}
+
+% \bibliography{references}
+
+\end{document}
