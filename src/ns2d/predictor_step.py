@@ -3,8 +3,9 @@ from typing import cast
 import numpy as np
 from numba import njit, prange
 
-from ns2d import Grid2D, SpatialDiscretizationStrategy, TimeIntegratorStrategy
+from ns2d import SpatialDiscretizationStrategy, TimeIntegratorStrategy
 
+from .utils import Grid2D
 
 @njit(parallel=True)
 def euler_step(
