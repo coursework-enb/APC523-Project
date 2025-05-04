@@ -1,0 +1,1 @@
+Here we analyze the accuracy of numerical schemes by injecting the exact solution (or an approximation via Taylor series) into the discretized scheme to see how well it approximates the continuous differential equation.
