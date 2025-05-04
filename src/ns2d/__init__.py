@@ -13,14 +13,12 @@ from .spatial_discretization import (
     FiniteDifferenceUpwindDiscretizer,
     FiniteVolumeDiscretizer,
 )
-from .utils import Grid2D
 
 __all__ = [
     "EulerIntegrator",
     "FiniteDifferenceDiscretizer",
     "FiniteDifferenceUpwindDiscretizer",
     "FiniteVolumeDiscretizer",
-    "Grid2D",
     "NavierStokesSolver2D",
     "PredictorCorrectorIntegrator",
     "RK4Integrator",
