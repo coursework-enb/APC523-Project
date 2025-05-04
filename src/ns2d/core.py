@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 
 from numpy import float64, sum, zeros
 
-from .benchmarks import validate_against_benchmark
+from .benchmarks import initialize_for_benchmark, validate_against_benchmark
 from .utils import Grid2D
 from .vorticity import finite_difference_vorticity
 
@@ -49,6 +49,7 @@ class NavierStokesSolver2D(ABC):
     u: Grid2D = field(init=False)
     v: Grid2D = field(init=False)
     p: Grid2D = field(init=False)
+    bc_case: int = 0  # periodic boundary conditions
 
     def __post_init__(self) -> None:
         self.u = zeros((self.nx, self.ny), dtype=float64)
@@ -64,9 +65,16 @@ class NavierStokesSolver2D(ABC):
         self.discrete_navier_stokes = discretizer
 
     @abstractmethod
-    def initialize_fields(self) -> None:
+    def initialize_fields(self, benchmark: str | None) -> None:
         """Initialize velocity and pressure fields."""
-        raise NotImplementedError("Initialization not implemented")
+        if benchmark is not None:
+            self.u, self.v, self.p, self.bc_case = initialize_for_benchmark(
+                benchmark, self.nx, self.ny
+            )
+        else:
+            self.u.fill(0.0)
+            self.v.fill(0.0)
+            self.p.fill(0.0)
 
     @abstractmethod
     def solve_poisson(self) -> None:
@@ -150,15 +158,14 @@ class NavierStokesSolver2D(ABC):
         num_steps: int,
         end_time: float = 2.5,
         initialize: bool = True,
-        validate: bool = False,
-        benchmark: str = "Lid-Driven Cavity",
+        benchmark: str | None = "Lid-Driven Cavity",
     ) -> None:
         """Run the simulation for a specified number of time steps.
 
         :param num_steps: Number of time steps to simulate
         """
         if initialize:
-            self.initialize_fields()
+            self.initialize_fields(benchmark)
 
         current_time = 0.0
         for step in range(num_steps):
@@ -179,8 +186,9 @@ class NavierStokesSolver2D(ABC):
             self.solve_poisson()
             self.update_velocity()
 
-            if validate and step % 10 == 0:
-                self.compute_vorticity()
+            # Optional
+            # if step % 10 == 0:
+            #     vorticity = self.compute_vorticity()
 
-        if validate:
+        if benchmark is not None:
             self.validate(benchmark, current_time)

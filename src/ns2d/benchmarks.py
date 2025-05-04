@@ -27,7 +27,7 @@ def _taylor_green_analytical_solution(
 
 def initialize_for_benchmark(
     benchmark: str, nx: int, ny: int
-) -> tuple[Grid2D, Grid2D, Grid2D]:
+) -> tuple[Grid2D, Grid2D, Grid2D, int]:
     """
     Initialize velocity and pressure fields based on the specified benchmark problem.
     Note: ensure correct BC are applied for both (periodic vs tangential velocity on top)
@@ -43,6 +43,7 @@ def initialize_for_benchmark(
         u = np.cos(X) * np.sin(Y)
         v = -np.cos(Y) * np.sin(X)
         p = 0.25 * (np.cos(2 * X) + np.cos(2 * Y))
+        case = 1
 
     elif benchmark == "Lid-Driven Cavity":
         u = np.zeros((nx, ny))
@@ -53,10 +54,12 @@ def initialize_for_benchmark(
         u[:, -1] = 1.0
         # No-slip conditions (u=v=0) on other walls are already set by zero initialization
 
+        case = 2
+
     else:
         raise ValueError(f"Unknown benchmark: {benchmark}")
 
-    return u, v, p
+    return u, v, p, case
 
 
 def validate_against_benchmark(
