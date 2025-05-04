@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from numpy import float64, sum, zeros
 
+from .adaptive_time import adapt_time_step
 from .benchmarks import initialize_for_benchmark, validate_against_benchmark
 from .utils import Grid2D
 from .vorticity import finite_difference_vorticity
@@ -49,6 +50,11 @@ class NavierStokesSolver2D(ABC):
     integrator: TimeIntegratorStrategy
     discrete_navier_stokes: SpatialDiscretizationStrategy
     bc_case: int = 0  # default: periodic boundary conditions
+    fixed_dt: bool = True
+    min_dt: float = 1e-8
+    max_dt: float = 1.0
+    tol: float = 1e-1  # default: 10% rule
+    strong_adaptive: bool = False
     u: Grid2D = field(init=False)
     v: Grid2D = field(init=False)
     p: Grid2D = field(init=False)
@@ -154,7 +160,7 @@ class NavierStokesSolver2D(ABC):
         )
         # TODO: add visual for the error at each cell
 
-    def run_simulation(
+    def integrate(
         self,
         num_steps: int,
         end_time: float = 2.5,
@@ -169,16 +175,23 @@ class NavierStokesSolver2D(ABC):
             self.initialize_fields(benchmark)
 
         current_time = 0.0
-        for step in range(num_steps):
-            current_time = step * self.dt
-            if current_time > end_time:
-                break
+        step = 0
+        current_dt = self.dt
 
+        while current_time < end_time and step < num_steps:
+            # Ensure we don't overshoot the end time
+            current_dt = min(current_dt, end_time - current_time)
+
+            # Store previous state for adaptive stepping
+            u_prev = self.u.copy()
+            v_prev = self.v.copy()
+
+            # Perform a tentative time step
             self.u, self.v = self.integrator.advance_time(
                 self.u,
                 self.v,
                 self.p,
-                self.dt,
+                current_dt,
                 self.discrete_navier_stokes,
                 self.dx,
                 self.dy,
@@ -187,7 +200,31 @@ class NavierStokesSolver2D(ABC):
             self.solve_poisson()
             self.update_velocity()
 
-            # Optional
+            # If adaptive time stepping is enabled, check if the step is acceptable
+            if not self.fixed_dt:
+                dt_new, accept = adapt_time_step(
+                    u_prev,
+                    v_prev,
+                    self.u,
+                    self.v,
+                    current_dt,
+                    self.min_dt,
+                    self.max_dt,
+                    self.tol,
+                )
+                if self.strong_adaptive and not accept:
+                    # If strong adaptive is enabled and step is rejected, revert and retry
+                    self.u = u_prev
+                    self.v = v_prev
+                    current_dt = dt_new
+                    continue
+                current_dt = dt_new
+
+            # Advance time and step counter
+            current_time += current_dt
+            step += 1
+
+            # Optional: Compute vorticity or other diagnostics at intervals
             # if step % 10 == 0:
             #     vorticity = self.compute_vorticity()
 

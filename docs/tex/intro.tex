@@ -13,7 +13,7 @@ We are dealing with the 2D incompressible Navier-Stokes equations, wich gives us
 \section{Method}
 
 We separate the computation into spatial discretization, time advancement of velocity (predictor), and pressure correction (corrector) to handle the incompressibility constraint.
-This method decouple the velocity and pressure solutions, solving the momentum equations first to get a tentative velocity (ignoring incompressibility initially), then correcting it by projecting the velocity field onto a divergence-free space via a pressure Poisson equation.
+This method decouples the velocity and pressure solutions, solving the momentum equations first to get a tentative velocity (ignoring incompressibility initially), then correcting it by projecting the velocity field onto a divergence-free space via a pressure Poisson equation.
 
 \begin{enumerate}
     \item Spatial discretization strategies for the right-hand side of the momentum equations. This step involves discretizing the spatial terms (RHS) of the momentum equations, which includes the advection (convection), diffusion, and pressure gradient terms.
