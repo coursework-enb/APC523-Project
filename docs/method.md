@@ -7,4 +7,4 @@ This method decouple the velocity and pressure solutions, solving the momentum e
 3. Finally a new pressure field is computed to enforce incompressibility by solving a Poisson equation for pressure (relating pressure at any point to the entire velocity field). Then the velocity field is corrected to satisfy the continuity equation.
 
 This method was prefered to a coupled (monolithic) method that solves the velocity and pressure fields simultaneously in a fully coupled system at each time step, since it decreases computational cost, although it cannot achieve higher-order temporal accuracy as easily.
-This projection method also makes it easier to analyze global error and convergence rate.
+This projection method also makes it easier to analyze global error and convergence rate, and separate the work in different tasks.
