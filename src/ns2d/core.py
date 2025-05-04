@@ -46,10 +46,10 @@ class NavierStokesSolver2D(ABC):
     nu: float
     integrator: TimeIntegratorStrategy
     discrete_navier_stokes: SpatialDiscretizationStrategy
+    bc_case: int = 0  # default: periodic boundary conditions
     u: Grid2D = field(init=False)
     v: Grid2D = field(init=False)
     p: Grid2D = field(init=False)
-    bc_case: int = 0  # periodic boundary conditions
 
     def __post_init__(self) -> None:
         self.u = zeros((self.nx, self.ny), dtype=float64)
