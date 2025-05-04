@@ -166,7 +166,7 @@ class NavierStokesSolver2D(ABC):
             self.compute_kinetic_energy(),
             self.solve_stream_function(),
         )
-        # TODO: add visual for the error at each cell
+        # TODO: add visual for the error at each cell when Taylor-Green Vortex
 
     def integrate(
         self,
@@ -190,7 +190,6 @@ class NavierStokesSolver2D(ABC):
             # Ensure we don't overshoot the end time
             current_dt = min(current_dt, end_time - current_time)
 
-            # Store previous state for adaptive stepping
             u_prev = self.u.copy()
             v_prev = self.v.copy()
 
@@ -205,8 +204,6 @@ class NavierStokesSolver2D(ABC):
                 self.dy,
                 self.nu,
             )
-            self.solve_poisson()
-            self.update_velocity()
 
             # If adaptive time stepping is enabled, check if the step is acceptable
             if not self.fixed_dt:
@@ -228,11 +225,15 @@ class NavierStokesSolver2D(ABC):
                     continue
                 current_dt = dt_new
 
+            # Enforce incompressibility
+            self.solve_poisson()
+            self.update_velocity()
+
             # Advance time and step counter
             current_time += current_dt
             step += 1
 
-            # Optional: Compute vorticity or other diagnostics at intervals
+            # Optional: Compute vorticity at intervals
             # if step % 10 == 0:
             #     vorticity = self.compute_vorticity()
 
