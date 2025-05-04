@@ -223,12 +223,10 @@ class PredictorCorrectorIntegrator(TimeIntegratorStrategy):
 
         # Average predictor and corrector
         nx, ny = u.shape
-        u_new = np.zeros_like(u)
-        v_new = np.zeros_like(v)
-        for i in range(1, nx - 1):
-            for j in range(1, ny - 1):
-                u_new[i, j] = u[i, j] + 0.5 * dt * (du_dt1[i, j] + du_dt2[i, j])
-                v_new[i, j] = v[i, j] + 0.5 * dt * (dv_dt1[i, j] + dv_dt2[i, j])
+        u_new = u.copy()
+        v_new = v.copy()
+        u_new[1:-1, 1:-1] += 0.5 * dt * (du_dt1[1:-1, 1:-1] + du_dt2[1:-1, 1:-1])
+        v_new[1:-1, 1:-1] += 0.5 * dt * (dv_dt1[1:-1, 1:-1] + dv_dt2[1:-1, 1:-1])
 
         return cast(tuple[Grid2D, Grid2D], (u_new, v_new))
 
