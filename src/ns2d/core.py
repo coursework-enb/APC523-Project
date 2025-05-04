@@ -3,8 +3,7 @@ from dataclasses import dataclass, field
 
 from numpy import float64, zeros
 
-from ns2d import Grid2D
-
+from .utils import Grid2D
 from .vorticity import finite_difference_vorticity
 
 
