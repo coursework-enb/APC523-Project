@@ -80,6 +80,56 @@ def rk4_step(
     return u_new, v_new
 
 
+@njit(parallel=True)
+def semi_implicit_step(
+    u: Grid2D,
+    v: Grid2D,
+    adv_u: Grid2D,
+    adv_v: Grid2D,
+    dt: float,
+    nu: float,
+    dx: float,
+    dy: float,
+) -> tuple[Grid2D, Grid2D]:
+    """
+    Perform a semi-implicit time step for velocity fields, treating advection explicitly
+    and diffusion implicitly.
+
+    Args:
+        u (Grid2D): Current x-velocity field.
+        v (Grid2D): Current y-velocity field.
+        adv_u (Grid2D): Advection term for x-velocity (explicit).
+        adv_v (Grid2D): Advection term for y-velocity (explicit).
+        dt (float): Time step size.
+        nu (float): Kinematic viscosity.
+        dx (float): Grid spacing in x-direction.
+        dy (float): Grid spacing in y-direction.
+
+    Returns:
+        tuple[Grid2D, Grid2D]: Updated (u, v) velocity fields.
+    """
+    nx, ny = u.shape
+    u_new = np.zeros_like(u)
+    v_new = np.zeros_like(v)
+    denom = 1.0 + 2.0 * dt * nu * (1.0 / dx**2 + 1.0 / dy**2)
+
+    for i in prange(1, nx - 1):
+        for j in range(1, ny - 1):
+            # Implicit diffusion for u
+            diff_u = nu * (
+                (u[i, j + 1] + u[i, j - 1]) / dx**2 + (u[i + 1, j] + u[i - 1, j]) / dy**2
+            )
+            u_new[i, j] = (u[i, j] + dt * adv_u[i, j] + dt * diff_u) / denom
+
+            # Implicit diffusion for v
+            diff_v = nu * (
+                (v[i, j + 1] + v[i, j - 1]) / dx**2 + (v[i + 1, j] + v[i - 1, j]) / dy**2
+            )
+            v_new[i, j] = (v[i, j] + dt * adv_v[i, j] + dt * diff_v) / denom
+
+    return u_new, v_new
+
+
 class EulerIntegrator(TimeIntegratorStrategy):
     def advance_time(
         self,
@@ -108,7 +158,6 @@ class EulerIntegrator(TimeIntegratorStrategy):
         Returns:
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
-        # Compute RHS without pressure gradient
         du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu)
         result = euler_step(u, v, du_dt, dv_dt, dt)
         return cast(tuple[Grid2D, Grid2D], result)
@@ -212,3 +261,38 @@ class PredictorCorrectorIntegrator(TimeIntegratorStrategy):
                 v_new[i, j] = v[i, j] + 0.5 * dt * (dv_dt1[i, j] + dv_dt2[i, j])
 
         return cast(tuple[Grid2D, Grid2D], (u_new, v_new))
+
+
+class SemiImplicitIntegrator(TimeIntegratorStrategy):
+    def advance_time(
+        self,
+        u: Grid2D,
+        v: Grid2D,
+        p_prev: Grid2D,
+        dt: float,
+        method: SpatialDiscretizationStrategy,
+        dx: float,
+        dy: float,
+        nu: float,
+    ) -> tuple[Grid2D, Grid2D]:
+        """
+        Advance velocity fields in time using a semi-implicit method without pressure gradient.
+        Advection terms are treated explicitly, while diffusion terms are treated implicitly
+        to relax time step restrictions due to viscosity.
+
+        Args:
+            u (Grid2D): Current x-velocity field.
+            v (Grid2D): Current y-velocity field.
+            p_prev (Grid2D): Previous pressure field (unused in predictor step).
+            dt (float): Time step size.
+            method (SpatialDiscretizationStrategy): Spatial discretization method.
+            dx (float): Grid spacing in x-direction.
+            dy (float): Grid spacing in y-direction.
+            nu (float): Kinematic viscosity.
+
+        Returns:
+            tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
+        """
+        du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu)
+        result = semi_implicit_step(u, v, du_dt, dv_dt, dt, nu, dx, dy)
+        return cast(tuple[Grid2D, Grid2D], result)
