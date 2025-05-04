@@ -4,7 +4,7 @@ import numpy as np
 from numba import njit, prange
 from numpy.typing import NDArray
 
-import .core as ns2dcore
+from . import core as ns2dcore
 
 
 def _get_stencil_coefficients(order: int) -> tuple[NDArray[np.float64], int]:
