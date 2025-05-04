@@ -1,4 +1,5 @@
 # Projection Method
+
 We separate the computation into spatial discretization, time advancement of velocity (predictor), and pressure correction (corrector) to handle the incompressibility constraint.
 This method decouple the velocity and pressure solutions, solving the momentum equations first to get a tentative velocity (ignoring incompressibility initially), then correcting it by projecting the velocity field onto a divergence-free space via a pressure Poisson equation.
 
