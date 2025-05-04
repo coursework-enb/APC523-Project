@@ -1,0 +1,25 @@
+\section{Model}
+We are dealing with the 2D incompressible Navier-Stokes equations, wich gives us:
+
+\begin{itemize}
+  \item For the x-momentum equation:
+  \[ \frac{\partial u}{\partial t} = -u \frac{\partial u}{\partial x} - v \frac{\partial u}{\partial y} - \frac{1}{\rho} \frac{\partial p}{\partial x} + \nu \left( \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} \right) \]
+  \item For the y-momentum equation:
+  \[ \frac{\partial v}{\partial t} = -u \frac{\partial v}{\partial x} - v \frac{\partial v}{\partial y} - \frac{1}{\rho} \frac{\partial p}{\partial y} + \nu \left( \frac{\partial^2 v}{\partial x^2} + \frac{\partial^2 v}{\partial y^2} \right) \]
+  \item Additionally, the continuity equation for incompressible flow ensures mass conservation:
+  \[ \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0 \]
+\end{itemize}
+
+\section{Method}
+
+We separate the computation into spatial discretization, time advancement of velocity (predictor), and pressure correction (corrector) to handle the incompressibility constraint.
+This method decouple the velocity and pressure solutions, solving the momentum equations first to get a tentative velocity (ignoring incompressibility initially), then correcting it by projecting the velocity field onto a divergence-free space via a pressure Poisson equation.
+
+\begin{enumerate}
+    \item Spatial discretization strategies for the right-hand side of the momentum equations. This step involves discretizing the spatial terms (RHS) of the momentum equations, which includes the advection (convection), diffusion, and pressure gradient terms.
+    \item Then we handle the time derivative (left-hand side) of the momentum equations by simply taking the spatially discretized equations and advancing the velocity fields (u and v) in time without considering the continuity constraint ($\nabla u=0$). This is the predictor step, computing a tentative velocity field based on the current state, which performs a transport phase that accounts for advection and diffusion without satisfying incompressibility.
+    \item Finally a new pressure field is computed to enforce incompressibility by solving a Poisson equation for pressure (relating pressure at any point to the entire velocity field). Then the velocity field is corrected to satisfy the continuity equation.
+\end{enumerate}
+
+This method was prefered to a coupled (monolithic) method that solves the velocity and pressure fields simultaneously in a fully coupled system at each time step, since it decreases computational cost, although it cannot achieve higher-order temporal accuracy as easily.
+This projection method also makes it easier to analyze global error and convergence rate, and separate the work in different tasks.

@@ -49,17 +49,7 @@
 This document presents numerical algorithms and methods for solving 2d incompressible Navier-stokes, with detailed sections on right- and left-hand side formulations, Poisson solver, and validation techniques.
 \end{abstract}
 
-\section{Model}
-We are dealing with the 2D incompressible Navier-Stokes equations, wich gives us:
-
-\begin{itemize}
-  \item For the x-momentum equation:
-  \[ \frac{\partial u}{\partial t} = -u \frac{\partial u}{\partial x} - v \frac{\partial u}{\partial y} - \frac{1}{\rho} \frac{\partial p}{\partial x} + \nu \left( \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} \right) \]
-  \item For the y-momentum equation:
-  \[ \frac{\partial v}{\partial t} = -u \frac{\partial v}{\partial x} - v \frac{\partial v}{\partial y} - \frac{1}{\rho} \frac{\partial p}{\partial y} + \nu \left( \frac{\partial^2 v}{\partial x^2} + \frac{\partial^2 v}{\partial y^2} \right) \]
-  \item Additionally, the continuity equation for incompressible flow ensures mass conservation:
-  \[ \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0 \]
-\end{itemize}
+\input{tex/intro}
 
 \input{tex/rhs}
 
