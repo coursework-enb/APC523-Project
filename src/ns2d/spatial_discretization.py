@@ -70,7 +70,7 @@ class FiniteDifferenceDiscretizer(SpatialDiscretizationStrategy):
         Returns:
             tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
         """
-        result = compute_fd_rhs(u, v, p, dx, dy, nu, include_pressure=False)
+        result = compute_fd_rhs(u, v, p, dx, dy, nu)
         return cast(tuple[Grid2D, Grid2D], result)
 
 
@@ -144,7 +144,7 @@ class FiniteDifferenceUpwindDiscretizer(SpatialDiscretizationStrategy):
         Returns:
             tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
         """
-        result = compute_fd_upwind_rhs(u, v, p, dx, dy, nu, include_pressure=False)
+        result = compute_fd_upwind_rhs(u, v, p, dx, dy, nu)
         return cast(tuple[Grid2D, Grid2D], result)
 
 
@@ -214,5 +214,5 @@ class FiniteVolumeDiscretizer(SpatialDiscretizationStrategy):
         Returns:
             tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
         """
-        result = compute_fv_rhs(u, v, p, dx, dy, nu, include_pressure=False)
+        result = compute_fv_rhs(u, v, p, dx, dy, nu)
         return cast(tuple[Grid2D, Grid2D], result)
