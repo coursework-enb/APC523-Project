@@ -3,6 +3,7 @@ from .core import (
     SpatialDiscretizationStrategy,
     TimeIntegratorStrategy,
 )
+from .corrector_step import ConjugateGradientSolver, GaussSeidelSolver, JacobiSolver
 from .predictor_step import (
     EulerIntegrator,
     PredictorCorrectorIntegrator,
@@ -15,10 +16,13 @@ from .rhs_discretization import (
 )
 
 __all__ = [
+    "ConjugateGradientSolver",
     "EulerIntegrator",
     "FiniteDifferenceDiscretizer",
     "FiniteDifferenceUpwindDiscretizer",
     "FiniteVolumeDiscretizer",
+    "GaussSeidelSolver",
+    "JacobiSolver",
     "NavierStokesSolver2D",
     "PredictorCorrectorIntegrator",
     "RK4Integrator",
