@@ -64,6 +64,15 @@ class NavierStokesSolver2D(ABC):
         self.v = zeros((self.nx, self.ny), dtype=float64)
         self.p = zeros((self.nx, self.ny), dtype=float64)
 
+    def __repr__(self) -> str:
+        return (
+            f"NavierStokesSolver2D(adaptive={not self.fixed_dt}, "
+            f"grid=({self.nx}x{self.ny}), "
+            f"scheme={self.discrete_navier_stokes.__class__.__name__}, "
+            f"integrator={self.integrator.__class__.__name__}, "
+            f"poisson=abstract)"
+        )
+
     def set_time_integrator(self, integrator: TimeIntegratorStrategy) -> None:
         """Change the time integration strategy at runtime"""
         self.integrator = integrator
@@ -119,8 +128,7 @@ class NavierStokesSolver2D(ABC):
         Compute the stream function by solving the Poisson equation -∇²ψ = ω using the class's Poisson solver.
         Vorticity is used as the source term.
 
-        Returns:
-            A 2D array representing the stream function field
+        :return: A 2D array representing the stream function field
         """
         vorticity = self.compute_vorticity()
 
