@@ -1,4 +1,5 @@
 from .core import (
+    Grid2D,
     NavierStokesSolver2D,
     SpatialDiscretizationStrategy,
     TimeIntegratorStrategy,
@@ -19,6 +20,7 @@ __all__ = [
     "FiniteDifferenceDiscretizer",
     "FiniteDifferenceUpwindDiscretizer",
     "FiniteVolumeDiscretizer",
+    "Grid2D",
     "NavierStokesSolver2D",
     "PredictorCorrectorIntegrator",
     "RK4Integrator",

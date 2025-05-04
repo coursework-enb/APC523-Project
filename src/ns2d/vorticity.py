@@ -4,7 +4,7 @@ import numpy as np
 from numba import njit, prange
 from numpy.typing import NDArray
 
-from . import core as ns2dcore
+from ns2d import Grid2D
 
 
 def _get_stencil_coefficients(order: int) -> tuple[NDArray[np.float64], int]:
@@ -44,20 +44,20 @@ def _get_stencil_coefficients(order: int) -> tuple[NDArray[np.float64], int]:
 
 @njit(parallel=True)
 def _compute_vorticity_central(
-    u: ns2dcore.Grid2D, v: ns2dcore.Grid2D, dx: float, dy: float, order: int = 2
-) -> ns2dcore.Grid2D:
+    u: Grid2D, v: Grid2D, dx: float, dy: float, order: int = 2
+) -> Grid2D:
     """
     Compute vorticity for interior points using central difference of specified order.
 
     Args:
-        u (ns2dcore.Grid2D): Velocity component in x-direction.
-        v (ns2dcore.Grid2D): Velocity component in y-direction.
+        u (Grid2D): Velocity component in x-direction.
+        v (Grid2D): Velocity component in y-direction.
         dx (float): Grid spacing in x-direction.
         dy (float): Grid spacing in y-direction.
         order (int): Order of accuracy for finite difference (even number, e.g., 2, 4, 6).
 
     Returns:
-        ns2dcore.Grid2D: Vorticity field (only interior points computed).
+        Grid2D: Vorticity field (only interior points computed).
     """
     nx, ny = u.shape
     vorticity = np.zeros_like(u)
@@ -79,21 +79,21 @@ def _compute_vorticity_central(
 
 @njit(parallel=True)
 def finite_difference_vorticity(
-    u: ns2dcore.Grid2D, v: ns2dcore.Grid2D, dx: float, dy: float, order: int
-) -> ns2dcore.Grid2D:
+    u: Grid2D, v: Grid2D, dx: float, dy: float, order: int
+) -> Grid2D:
     """
     Compute vorticity using central difference for interior points and one-sided differences
     for boundary points.
 
     Args:
-        u (ns2dcore.Grid2D): Velocity component in x-direction.
-        v (ns2dcore.Grid2D): Velocity component in y-direction.
+        u (Grid2D): Velocity component in x-direction.
+        v (Grid2D): Velocity component in y-direction.
         dx (float): Grid spacing in x-direction.
         dy (float): Grid spacing in y-direction.
         order (int): Order of accuracy for finite difference in interior points (e.g., 2, 4, 6).
 
     Returns:
-        ns2dcore.Grid2D: Computed vorticity field with boundary adjustments.
+        Grid2D: Computed vorticity field with boundary adjustments.
     """
     nx, ny = u.shape
     vorticity = _compute_vorticity_central(u, v, dx, dy, order)
@@ -147,4 +147,4 @@ def finite_difference_vorticity(
             dv_dx = (v[i, j + 1] - v[i, j - 1]) / (2 * dx)
         vorticity[i, j] = dv_dx - du_dy
 
-    return cast(ns2dcore.Grid2D, vorticity)
+    return cast(Grid2D, vorticity)

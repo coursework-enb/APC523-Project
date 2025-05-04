@@ -3,7 +3,7 @@ from typing import cast
 import numpy as np
 from numba import njit, prange
 
-from .core import Grid2D, SpatialDiscretizationStrategy
+from ns2d.core import Grid2D, SpatialDiscretizationStrategy
 
 
 @njit(parallel=True)
