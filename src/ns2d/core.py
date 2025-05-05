@@ -77,12 +77,14 @@ class NavierStokesSolver2D(ABC):
         self.p = zeros((self.nx, self.ny), dtype=float64)
 
     def __repr__(self) -> str:
+        is_abstract = ABC in self.__class__.__bases__
+        poisson_solver = "abstract" if is_abstract else self.__class__.__name__
         return (
             f"NavierStokesSolver2D(adaptive={not self.fixed_dt}, "
             f"grid=({self.nx}x{self.ny}), "
             f"scheme={self.discrete_navier_stokes.__class__.__name__}, "
             f"integrator={self.integrator.__class__.__name__}, "
-            f"poisson=abstract)"
+            f"poisson={poisson_solver})"
         )
 
     def _apply_bc(self, uv: bool = True, p: bool = True) -> None:
