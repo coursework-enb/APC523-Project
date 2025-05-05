@@ -1,4 +1,4 @@
-# TODO: Enforce boundary conditions consistently, depending on bc_case
+# TODO: Make sure that boundary conditions are enforced consistently and coherently
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -137,6 +137,17 @@ class NavierStokesSolver2D(ABC):
             self.u, self.v, self.dx, self.dy, order=order
         )
         # We could also compute it using the stream function field (from below) and computing the Laplacian of psi using finite differences
+
+        if self.bc_case == 1:  # Periodic BC
+            result[0, :] = result[-2, :]
+            result[-1, :] = result[1, :]
+            result[:, 0] = result[:, -2]
+            result[:, -1] = result[:, 1]
+
+        # Note: For case 2, we approximate vorticity even at last boundary cells using one-sided differences,
+        # but a more accurate approach would involve computing wall vorticity explicitly to ensure
+        # consistency with the no-slip condition.
+
         return result
 
     def solve_stream_function(self) -> Grid2D:
