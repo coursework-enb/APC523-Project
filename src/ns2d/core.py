@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 from numpy import float64, sum, zeros
+from tqdm import tqdm
 
 from .adaptive_time import adapt_time_step
 from .benchmarks import (
@@ -236,6 +237,10 @@ class NavierStokesSolver2D(ABC):
         if benchmark == "Taylor-Green Vortex":
             errors = []
 
+        # If num_steps is provided, use it as the total; otherwise, estimate based on end_time and dt
+        total_steps = num_steps if num_steps is not None else int(end_time / self.dt) + 1
+        progress_bar = tqdm(total=total_steps, desc="Simulation Progress", unit="steps")
+
         while current_time < end_time and step < max_steps:
             # Ensure we don't overshoot the end time
             current_dt = min(current_dt, end_time - current_time)
@@ -288,6 +293,8 @@ class NavierStokesSolver2D(ABC):
             current_time += current_dt
             step += 1
 
+            progress_bar.update(1)
+
             # Optional: Compute vorticity at intervals
             if (
                 num_step_vorticity is not None
@@ -295,6 +302,8 @@ class NavierStokesSolver2D(ABC):
                 and step % num_step_vorticity == 0
             ):
                 _ = self.compute_vorticity()
+
+        progress_bar.close()
 
         if benchmark == "Lid-Driven Cavity":
             error_ldc: float = self.validate(benchmark, current_time, verbose=True)
