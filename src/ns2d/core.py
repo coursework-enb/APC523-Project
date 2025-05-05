@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from numpy import float64, inf, sum, zeros
+from numpy import float64, sum, zeros
 
 from .adaptive_time import adapt_time_step
 from .benchmarks import initialize_for_benchmark, validate_against_benchmark
@@ -172,24 +172,27 @@ class NavierStokesSolver2D(ABC):
     def integrate(
         self,
         num_steps: int | None = None,
-        end_time: float = 2.5,
-        num_step_vorticity: int | None = None
+        end_time: float | None = 2.5,
+        num_step_vorticity: int | None = None,
         benchmark: str | None = "Lid-Driven Cavity",
     ) -> None:
         """Run the simulation for a specified number of time steps.
 
         :param num_steps: Number of time steps to simulate
         """
+        if num_steps is None and end_time is None:
+            raise ValueError("Needs either num_steps or end_time")
+
         self.initialize_fields(benchmark)
 
         current_time = 0.0
         step = 0
         current_dt = self.dt
 
-        if num_steps is None:
-            num_steps: float = inf
+        max_steps: int | float = num_steps if num_steps is not None else float("inf")
+        end_time = end_time if end_time is not None else float("inf")
 
-        while current_time < end_time and step < num_steps:
+        while current_time < end_time and step < max_steps:
             # Ensure we don't overshoot the end time
             current_dt = min(current_dt, end_time - current_time)
 
@@ -237,8 +240,12 @@ class NavierStokesSolver2D(ABC):
             step += 1
 
             # Optional: Compute vorticity at intervals
-            if num_step_vorticity is not None and num_step_vorticity != 0 and step % num_step_vorticity == 0:
-                vorticity = self.compute_vorticity()
+            if (
+                num_step_vorticity is not None
+                and num_step_vorticity != 0
+                and step % num_step_vorticity == 0
+            ):
+                _ = self.compute_vorticity()
 
         if benchmark is not None:
             self.validate(benchmark, current_time)
