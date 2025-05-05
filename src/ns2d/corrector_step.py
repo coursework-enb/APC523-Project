@@ -2,7 +2,6 @@ import numpy as np
 import pyamg
 from scipy.sparse import diags, eye, kron
 
-from .benchmark import apply_pressure_bc
 from .core import NavierStokesSolver2D
 from .utils import Grid2D
 
@@ -43,7 +42,7 @@ def velocity_correction(
 
 
 def pressure_poisson_multigrid(
-    rhs: Grid2D, dx: float, dy: float, bc_case: str, smoother: str = "jacobi"
+    rhs: Grid2D, dx: float, dy: float, smoother: str = "jacobi"
 ) -> Grid2D:
     nx, ny = rhs.shape
     Tx = diags([1, -2, 1], [-1, 0, 1], shape=(nx, nx)) / dx**2
@@ -67,7 +66,7 @@ def pressure_poisson_multigrid(
 
     x = ml.solve(b, tol=1e-8)
     p = x.reshape((nx, ny))
-    apply_pressure_bc(p, bc_case)
+
     return p
 
 
@@ -79,9 +78,8 @@ def pressure_poisson_multigrid(
 class JacobiSolver(NavierStokesSolver2D):
     def solve_poisson(self) -> None:
         rhs = divergence(self.u, self.v, self.dx, self.dy) / self.dt
-        self.p = pressure_poisson_multigrid(
-            rhs, self.dx, self.dy, self.bc_case, smoother="jacobi"
-        )
+        self.p = pressure_poisson_multigrid(rhs, self.dx, self.dy, smoother="jacobi")
+        self._apply_bc()
 
     def update_velocity(self) -> None:
         self.u, self.v = velocity_correction(
@@ -93,8 +91,9 @@ class GaussSeidelSolver(NavierStokesSolver2D):
     def solve_poisson(self) -> None:
         rhs = divergence(self.u, self.v, self.dx, self.dy) / self.dt
         self.p = pressure_poisson_multigrid(
-            rhs, self.dx, self.dy, self.bc_case, smoother="gauss_seidel"
+            rhs, self.dx, self.dy, smoother="gauss_seidel"
         )
+        self._apply_bc()
 
     def update_velocity(self) -> None:
         self.u, self.v = velocity_correction(

@@ -6,7 +6,11 @@ from dataclasses import dataclass, field
 from numpy import float64, sum, zeros
 
 from .adaptive_time import adapt_time_step
-from .benchmarks import initialize_for_benchmark, validate_against_benchmark
+from .benchmarks import (
+    apply_boundary_conditions,
+    initialize_for_benchmark,
+    validate_against_benchmark,
+)
 from .utils import Grid2D
 from .vorticity import finite_difference_vorticity
 
@@ -71,6 +75,11 @@ class NavierStokesSolver2D(ABC):
             f"scheme={self.discrete_navier_stokes.__class__.__name__}, "
             f"integrator={self.integrator.__class__.__name__}, "
             f"poisson=abstract)"
+        )
+
+    def _apply_bc(self) -> None:
+        self.u, self.v, self.p = apply_boundary_conditions(
+            self.u, self.v, self.p, self.bc_case
         )
 
     def set_time_integrator(self, integrator: TimeIntegratorStrategy) -> None:
