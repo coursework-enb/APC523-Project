@@ -7,10 +7,10 @@ from numpy import float64, sum, zeros
 
 from .adaptive_time import adapt_time_step
 from .benchmarks import (
-    apply_boundary_conditions,
     initialize_for_benchmark,
     validate_against_benchmark,
 )
+from .boundaries import apply_boundary_conditions
 from .utils import Grid2D
 from .vorticity import finite_difference_vorticity
 
@@ -18,7 +18,14 @@ from .vorticity import finite_difference_vorticity
 class SpatialDiscretizationStrategy(ABC):
     @abstractmethod
     def __call__(
-        self, u: Grid2D, v: Grid2D, p: Grid2D, dx: float, dy: float, nu: float
+        self,
+        u: Grid2D,
+        v: Grid2D,
+        p: Grid2D,
+        dx: float,
+        dy: float,
+        nu: float,
+        bc_case: int,
     ) -> tuple[Grid2D, Grid2D]:
         """Discretize spatial derivatives for momentum equations"""
         pass
@@ -36,6 +43,7 @@ class TimeIntegratorStrategy(ABC):
         dx: float,
         dy: float,
         nu: float,  # with necessary inputs for call
+        bc_case: int,
     ) -> tuple[Grid2D, Grid2D]:
         """Calculate intermediate velocities without pressure gradient"""
         pass
@@ -218,6 +226,7 @@ class NavierStokesSolver2D(ABC):
                 self.dx,
                 self.dy,
                 self.nu,
+                self.bc_case,
             )
 
             # If adaptive time stepping is enabled, check if the step is acceptable

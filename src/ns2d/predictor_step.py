@@ -111,6 +111,7 @@ class EulerIntegrator(TimeIntegratorStrategy):
         dx: float,
         dy: float,
         nu: float,
+        bc_case: int,
     ) -> tuple[Grid2D, Grid2D]:
         """
         Advance velocity fields in time using forward Euler method without pressure gradient.
@@ -128,7 +129,7 @@ class EulerIntegrator(TimeIntegratorStrategy):
         Returns:
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
-        du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu)
+        du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu, bc_case)
         result = euler_step(u, v, du_dt, dv_dt, dt)
         return cast(tuple[Grid2D, Grid2D], result)
 
@@ -144,6 +145,7 @@ class RK4Integrator(TimeIntegratorStrategy):
         dx: float,
         dy: float,
         nu: float,
+        bc_case: int,
     ) -> tuple[Grid2D, Grid2D]:
         """
         Advance velocity fields in time using fourth-order Runge-Kutta (RK4) method without pressure gradient.
@@ -162,22 +164,22 @@ class RK4Integrator(TimeIntegratorStrategy):
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
         # Stage 1
-        k1_u, k1_v = method(u, v, p_prev, dx, dy, nu)
+        k1_u, k1_v = method(u, v, p_prev, dx, dy, nu, bc_case)
         u1 = u + 0.5 * dt * k1_u
         v1 = v + 0.5 * dt * k1_v
 
         # Stage 2
-        k2_u, k2_v = method(u1, v1, p_prev, dx, dy, nu)
+        k2_u, k2_v = method(u1, v1, p_prev, dx, dy, nu, bc_case)
         u2 = u + 0.5 * dt * k2_u
         v2 = v + 0.5 * dt * k2_v
 
         # Stage 3
-        k3_u, k3_v = method(u2, v2, p_prev, dx, dy, nu)
+        k3_u, k3_v = method(u2, v2, p_prev, dx, dy, nu, bc_case)
         u3 = u + dt * k3_u
         v3 = v + dt * k3_v
 
         # Stage 4
-        k4_u, k4_v = method(u3, v3, p_prev, dx, dy, nu)
+        k4_u, k4_v = method(u3, v3, p_prev, dx, dy, nu, bc_case)
 
         # Final update
         result = rk4_step(u, v, k1_u, k1_v, k2_u, k2_v, k3_u, k3_v, k4_u, k4_v, dt)
@@ -195,6 +197,7 @@ class PredictorCorrectorIntegrator(TimeIntegratorStrategy):
         dx: float,
         dy: float,
         nu: float,
+        bc_case: int,
     ) -> tuple[Grid2D, Grid2D]:
         """
         Advance velocity fields in time using predictor-corrector method without pressure gradient.
@@ -214,12 +217,12 @@ class PredictorCorrectorIntegrator(TimeIntegratorStrategy):
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
         # Predictor step
-        du_dt1, dv_dt1 = method(u, v, p_prev, dx, dy, nu)
+        du_dt1, dv_dt1 = method(u, v, p_prev, dx, dy, nu, bc_case)
         u_star = u + dt * du_dt1
         v_star = v + dt * dv_dt1
 
         # Corrector step
-        du_dt2, dv_dt2 = method(u_star, v_star, p_prev, dx, dy, nu)
+        du_dt2, dv_dt2 = method(u_star, v_star, p_prev, dx, dy, nu, bc_case)
 
         # Average predictor and corrector
         nx, ny = u.shape
@@ -242,6 +245,7 @@ class SemiImplicitIntegrator(TimeIntegratorStrategy):
         dx: float,
         dy: float,
         nu: float,
+        bc_case: int,
     ) -> tuple[Grid2D, Grid2D]:
         """
         Advance velocity fields in time using a semi-implicit method without pressure gradient.
@@ -261,6 +265,6 @@ class SemiImplicitIntegrator(TimeIntegratorStrategy):
         Returns:
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
-        du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu)
+        du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu, bc_case)
         result = semi_implicit_step(u, v, du_dt, dv_dt, dt, nu, dx, dy)
         return cast(tuple[Grid2D, Grid2D], result)

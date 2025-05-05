@@ -5,6 +5,7 @@ from numba import njit, prange
 
 from ns2d import SpatialDiscretizationStrategy
 
+from .boundaries import apply_bc_rhs
 from .utils import Grid2D
 
 
@@ -50,28 +51,6 @@ def compute_fd_rhs(
             dv_dt[i, j] = -conv_v + nu * lap_v - dp_dy
 
     return du_dt, dv_dt
-
-
-class FiniteDifferenceDiscretizer(SpatialDiscretizationStrategy):
-    def __call__(
-        self, u: Grid2D, v: Grid2D, p: Grid2D, dx: float, dy: float, nu: float
-    ) -> tuple[Grid2D, Grid2D]:
-        """
-        Discretize spatial derivatives for momentum equations using central finite difference.
-
-        Args:
-            u (Grid2D): Velocity component in x-direction.
-            v (Grid2D): Velocity component in y-direction.
-            p (Grid2D): Pressure field.
-            dx (float): Grid spacing in x-direction.
-            dy (float): Grid spacing in y-direction.
-            nu (float): Kinematic viscosity.
-
-        Returns:
-            tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
-        """
-        result = compute_fd_rhs(u, v, p, dx, dy, nu)
-        return cast(tuple[Grid2D, Grid2D], result)
 
 
 @njit(parallel=True)
@@ -126,28 +105,6 @@ def compute_fd_upwind_rhs(
     return du_dt, dv_dt
 
 
-class FiniteDifferenceUpwindDiscretizer(SpatialDiscretizationStrategy):
-    def __call__(
-        self, u: Grid2D, v: Grid2D, p: Grid2D, dx: float, dy: float, nu: float
-    ) -> tuple[Grid2D, Grid2D]:
-        """
-        Discretize spatial derivatives for momentum equations using upwind finite difference for convection.
-
-        Args:
-            u (Grid2D): Velocity component in x-direction.
-            v (Grid2D): Velocity component in y-direction.
-            p (Grid2D): Pressure field.
-            dx (float): Grid spacing in x-direction.
-            dy (float): Grid spacing in y-direction.
-            nu (float): Kinematic viscosity.
-
-        Returns:
-            tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
-        """
-        result = compute_fd_upwind_rhs(u, v, p, dx, dy, nu)
-        return cast(tuple[Grid2D, Grid2D], result)
-
-
 @njit(parallel=True)
 def compute_fv_rhs(
     u: Grid2D,
@@ -196,9 +153,76 @@ def compute_fv_rhs(
     return du_dt, dv_dt
 
 
+class FiniteDifferenceDiscretizer(SpatialDiscretizationStrategy):
+    def __call__(
+        self,
+        u: Grid2D,
+        v: Grid2D,
+        p: Grid2D,
+        dx: float,
+        dy: float,
+        nu: float,
+        bc_case: int,
+    ) -> tuple[Grid2D, Grid2D]:
+        """
+        Discretize spatial derivatives for momentum equations using central finite difference.
+
+        Args:
+            u (Grid2D): Velocity component in x-direction.
+            v (Grid2D): Velocity component in y-direction.
+            p (Grid2D): Pressure field.
+            dx (float): Grid spacing in x-direction.
+            dy (float): Grid spacing in y-direction.
+            nu (float): Kinematic viscosity.
+
+        Returns:
+            tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
+        """
+        du_dt, dv_dt = compute_fd_rhs(u, v, p, dx, dy, nu)
+        result = apply_bc_rhs(du_dt, dv_dt, bc_case)
+        return cast(tuple[Grid2D, Grid2D], result)
+
+
+class FiniteDifferenceUpwindDiscretizer(SpatialDiscretizationStrategy):
+    def __call__(
+        self,
+        u: Grid2D,
+        v: Grid2D,
+        p: Grid2D,
+        dx: float,
+        dy: float,
+        nu: float,
+        bc_case: int,
+    ) -> tuple[Grid2D, Grid2D]:
+        """
+        Discretize spatial derivatives for momentum equations using upwind finite difference for convection.
+
+        Args:
+            u (Grid2D): Velocity component in x-direction.
+            v (Grid2D): Velocity component in y-direction.
+            p (Grid2D): Pressure field.
+            dx (float): Grid spacing in x-direction.
+            dy (float): Grid spacing in y-direction.
+            nu (float): Kinematic viscosity.
+
+        Returns:
+            tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
+        """
+        du_dt, dv_dt = compute_fd_upwind_rhs(u, v, p, dx, dy, nu)
+        result = apply_bc_rhs(du_dt, dv_dt, bc_case)
+        return cast(tuple[Grid2D, Grid2D], result)
+
+
 class FiniteVolumeDiscretizer(SpatialDiscretizationStrategy):
     def __call__(
-        self, u: Grid2D, v: Grid2D, p: Grid2D, dx: float, dy: float, nu: float
+        self,
+        u: Grid2D,
+        v: Grid2D,
+        p: Grid2D,
+        dx: float,
+        dy: float,
+        nu: float,
+        bc_case: int,
     ) -> tuple[Grid2D, Grid2D]:
         """
         Discretize spatial derivatives for momentum equations using finite volume method.
@@ -214,5 +238,6 @@ class FiniteVolumeDiscretizer(SpatialDiscretizationStrategy):
         Returns:
             tuple[Grid2D, Grid2D]: Time derivatives (du_dt, dv_dt) for u and v components.
         """
-        result = compute_fv_rhs(u, v, p, dx, dy, nu)
+        du_dt, dv_dt = compute_fv_rhs(u, v, p, dx, dy, nu)
+        result = apply_bc_rhs(du_dt, dv_dt, bc_case)
         return cast(tuple[Grid2D, Grid2D], result)

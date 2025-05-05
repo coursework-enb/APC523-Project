@@ -1,1 +1,30 @@
 \section{Validation}
+
+\subsection{Taylor-Green Vortex}
+The Taylor-Green Vortex (TGV) is a canonical benchmark problem for validating numerical solvers of the incompressible Navier-Stokes equations due to its exact analytical solution.
+This solution describes a decaying vortex flow in a periodic domain, allowing for direct comparison between simulated and analytical results, given by:
+\[
+u(x, y, t) = \cos(x) \sin(y) \exp(-2 \nu t \pi^2),
+\]
+\[
+v(x, y, t) = -\cos(y) \sin(x) \exp(-2 \nu t \pi^2),
+\]
+\[
+p(x, y, t) = \frac{1}{4} \left( \cos(2x) + \cos(2y) \right) \exp(-4 \nu t \pi^2),
+\]
+where \( u \) and \( v \) are the velocity components in the \( x \)- and \( y \)-directions, respectively, \( p \) is the pressure, \( \nu \) is the kinematic viscosity, and \( t \) is the time.
+The factor \( \pi^2 \) in the exponential decay term accounts for the specific domain scaling used in the implementation.
+
+Validation is performed by computing the kinetic energy of the simulated flow and comparing it with the analytical kinetic energy at a given time, to obtain a quantitative measure of the solver's accuracy.
+Periodic boundary conditions are applied to maintain the flow's continuity across the domain boundaries.
+
+\subsection{Lid-Driven Cavity}
+The Lid-Driven Cavity flow is another standard benchmark for validating numerical solvers, particularly for assessing the handling of boundary conditions and steady-state flow features in a confined domain.
+Unlike the Taylor-Green Vortex, it lacks an analytical solution, so validation relies on comparison with established reference data from literature or prior simulations.
+
+The problem setup involves a square domain with no-slip boundary conditions on three walls (\( u = v = 0 \)) and a moving top wall (lid) with a constant tangential velocity (\( u = 1, v = 0 \)).
+The flow is driven by the lid motion, resulting in a primary recirculating vortex and, at higher Reynolds numbers, secondary vortices in the corners.
+We use Neumann boundary conditions for pressure (\( \frac{\partial p}{\partial n} = 0 \)) at the walls.
+
+Here, validation focuses on the stream function's minimum value, which is indicative of the primary vortex strength in the cavity.
+The comparison with a reference value allows for an assessment of numerical accuracy and convergence towards expected flow behavior.

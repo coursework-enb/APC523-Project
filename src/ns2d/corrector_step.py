@@ -1,3 +1,5 @@
+from typing import cast
+
 import numpy as np
 import pyamg
 from scipy.sparse import diags, eye, kron
@@ -67,7 +69,7 @@ def pressure_poisson_multigrid(
     x = ml.solve(b, tol=1e-8)
     p = x.reshape((nx, ny))
 
-    return p
+    return cast(Grid2D, p)
 
 
 # ------------------------
