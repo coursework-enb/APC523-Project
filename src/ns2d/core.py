@@ -1,12 +1,13 @@
 # TODO:
 # - Make sure that boundary conditions are enforced consistently and coherently
-# - Should X and Y be actually used?
+# - Leverage CFL for adaptive time stepping to avoid having CFL over 0.2
 # - Define a proper default initialization (when no benchmark) + manual init
+# - Should X and Y be actually used?
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from numpy import float64, sum, zeros
+from numpy import float64, maximum, sum, zeros
 from tqdm import tqdm
 
 from .adaptive_time import adapt_time_step
@@ -98,6 +99,10 @@ class NavierStokesSolver2D(ABC):
             self.u, self.v = apply_velocity_bc(self.u, self.v, self.bc_case)
         if p:
             self.p = apply_pressure_bc(self.p, self.bc_case)
+
+    def _estimate_cfl(self) -> float:
+        cfl: float = maximum(self.u * self.dt / self.dx, self.v * self.dt / self.dy).max()
+        return cfl
 
     def set_time_integrator(self, integrator: TimeIntegratorStrategy) -> None:
         """Change the time integration strategy at runtime"""
@@ -223,7 +228,11 @@ class NavierStokesSolver2D(ABC):
         end_time: float | None = 2.5,
         num_step_vorticity: int | None = None,
         benchmark: str | None = "Lid-Driven Cavity",
-    ) -> list[tuple[float, float]] | float | None:
+    ) -> (
+        tuple[list[float], list[float], float]
+        | tuple[list[float], list[float], list[float]]
+        | tuple[list[float], list[float]]
+    ):
         """Run the simulation for a specified number of time steps.
 
         :param num_steps: Number of time steps to simulate
@@ -240,6 +249,8 @@ class NavierStokesSolver2D(ABC):
         max_steps: int | float = num_steps if num_steps is not None else float("inf")
         end_time = end_time if end_time is not None else float("inf")
 
+        cfl_values = []
+        time_values = []
         if benchmark == "Taylor-Green Vortex":
             errors = []
 
@@ -291,9 +302,12 @@ class NavierStokesSolver2D(ABC):
             self.solve_poisson()
             self.update_velocity()
 
+            # Record
+            cfl_values.append(self._estimate_cfl())
+            time_values.append(current_time)
             if benchmark == "Taylor-Green Vortex":
                 error_tgv: float = self.validate(benchmark, current_time)
-                errors.append((current_time, error_tgv))
+                errors.append(error_tgv)
 
             # Advance time and step counter
             current_time += current_dt
@@ -313,8 +327,8 @@ class NavierStokesSolver2D(ABC):
 
         if benchmark == "Lid-Driven Cavity":
             error_ldc: float = self.validate(benchmark, current_time, verbose=True)
-            return error_ldc
+            return time_values, cfl_values, error_ldc
         elif benchmark == "Taylor-Green Vortex":
-            return errors
+            return time_values, cfl_values, errors
         else:
-            return None
+            return time_values, cfl_values
