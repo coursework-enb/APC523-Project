@@ -1,6 +1,7 @@
 # TODO:
 # - Make sure that boundary conditions are enforced consistently and coherently
 # - Leverage CFL for adaptive time stepping to avoid having CFL over 0.2
+# - Add external forces
 # - Define a proper default initialization (when no benchmark) + manual init
 # - Should X and Y be actually used?
 
