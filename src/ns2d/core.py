@@ -108,6 +108,7 @@ class NavierStokesSolver2D(ABC):
                 benchmark, self.nx, self.ny
             )
         else:
+            print("WARNING: No benchmark")
             self.u.fill(0.0)
             self.v.fill(0.0)
             self.p.fill(0.0)
@@ -185,13 +186,13 @@ class NavierStokesSolver2D(ABC):
 
         return stream_func
 
-    def validate(self, benchmark: str, current_time: float) -> None:
+    def validate(self, benchmark: str, current_time: float) -> float:
         """
         This method compares the solver's output (e.g., kinetic energy for Taylor-Green Vortex or minimum stream function for Lid-Driven Cavity) against reference or analytical solutions for the specified benchmark problem.
 
         :param benchmark: The benchmark problem to validate against
         """
-        _ = validate_against_benchmark(
+        error: float = validate_against_benchmark(
             benchmark,
             self.dx,
             self.dy,
@@ -203,7 +204,8 @@ class NavierStokesSolver2D(ABC):
             self.solve_stream_function(),
         )
         # TODO: Make it more efficient by not computing kinetic energy and stream when not needed
-        # TODO: add visual for the error at each cell when Taylor-Green Vortex
+        # Optional: Add visual for the error at each cell when Taylor-Green Vortex
+        return error
 
     def integrate(
         self,
@@ -211,7 +213,7 @@ class NavierStokesSolver2D(ABC):
         end_time: float | None = 2.5,
         num_step_vorticity: int | None = None,
         benchmark: str | None = "Lid-Driven Cavity",
-    ) -> None:
+    ) -> list[tuple[float, float]] | float | None:
         """Run the simulation for a specified number of time steps.
 
         :param num_steps: Number of time steps to simulate
@@ -227,6 +229,9 @@ class NavierStokesSolver2D(ABC):
 
         max_steps: int | float = num_steps if num_steps is not None else float("inf")
         end_time = end_time if end_time is not None else float("inf")
+
+        if benchmark == "Taylor-Green Vortex":
+            errors = []
 
         while current_time < end_time and step < max_steps:
             # Ensure we don't overshoot the end time
@@ -272,6 +277,10 @@ class NavierStokesSolver2D(ABC):
             self.solve_poisson()
             self.update_velocity()
 
+            if benchmark == "Taylor-Green Vortex":
+                error_tgv: float = self.validate(benchmark, current_time)
+                errors.append((current_time, error_tgv))
+
             # Advance time and step counter
             current_time += current_dt
             step += 1
@@ -284,5 +293,10 @@ class NavierStokesSolver2D(ABC):
             ):
                 _ = self.compute_vorticity()
 
-        if benchmark is not None:
-            self.validate(benchmark, current_time)
+        if benchmark == "Lid-Driven Cavity":
+            error_ldc: float = self.validate(benchmark, current_time)
+            return error_ldc
+        elif benchmark == "Taylor-Green Vortex":
+            return errors
+        else:
+            return None
