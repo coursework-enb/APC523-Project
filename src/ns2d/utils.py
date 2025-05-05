@@ -1,6 +1,6 @@
-from typing import TypeAlias
+from typing import Annotated, TypeAlias
 
 from numpy import float64
 from numpy.typing import NDArray
 
-Grid2D: TypeAlias = NDArray[float64]
+Grid2D: TypeAlias = Annotated[NDArray[float64], "2D shape (nx, ny)"]
