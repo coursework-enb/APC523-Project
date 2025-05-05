@@ -12,7 +12,7 @@ v(x, y, t) = -\cos(\pi x) \sin(\pi y) \exp(-2 \nu t \pi^2),
 \[
 p(x, y, t) = -\frac{\rho}{4} \left( \cos(2\pi x) + \cos(2\pi y) \right) \exp(-4 \nu t \pi^2),
 \]
-where \( u \) and \( v \) are the velocity components in the \( x \)- and \( y \)-directions, respectively, \( p \) is the pressure, \( \nu \) is the kinematic viscosity, and \( t \) is the time.
+for \( x,y \in (-1,1)^2 \), where \( u \) and \( v \) are the velocity components in the \( x \)- and \( y \)-directions, respectively, \( p \) is the pressure, \( \nu \) is the kinematic viscosity, and \( t \) is the time.
 The factor \( \pi^2 \) in the exponential decay term accounts for the specific domain scaling used in the implementation.
 
 Validation is performed by computing the kinetic energy of the simulated flow and comparing it with the analytical kinetic energy at a given time, to obtain a quantitative measure of the solver's accuracy.
