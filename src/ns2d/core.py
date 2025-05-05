@@ -85,9 +85,11 @@ class NavierStokesSolver2D(ABC):
             f"poisson=abstract)"
         )
 
-    def _apply_bc(self) -> None:
-        self.u, self.v = apply_velocity_bc(self.u, self.v, self.bc_case)
-        self.p = apply_pressure_bc(self.p, self.bc_case)
+    def _apply_bc(self, uv: bool = True, p: bool = True) -> None:
+        if uv:
+            self.u, self.v = apply_velocity_bc(self.u, self.v, self.bc_case)
+        if p:
+            self.p = apply_pressure_bc(self.p, self.bc_case)
 
     def set_time_integrator(self, integrator: TimeIntegratorStrategy) -> None:
         """Change the time integration strategy at runtime"""

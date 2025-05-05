@@ -5,12 +5,13 @@ from numba import njit, prange
 
 from ns2d import SpatialDiscretizationStrategy, TimeIntegratorStrategy
 
+from .boundaries import apply_velocity_bc
 from .utils import Grid2D
 
 
 @njit(parallel=True)
 def euler_step(
-    u: Grid2D, v: Grid2D, du_dt: Grid2D, dv_dt: Grid2D, dt: float
+    u: Grid2D, v: Grid2D, du_dt: Grid2D, dv_dt: Grid2D, dt: float, bc_case: int
 ) -> tuple[Grid2D, Grid2D]:
     """
     Perform a forward Euler time step for velocity fields.
@@ -20,10 +21,14 @@ def euler_step(
     u_new = np.zeros_like(u)
     v_new = np.zeros_like(v)
 
+    # Interior points
     for i in prange(1, nx - 1):
         for j in range(1, ny - 1):
             u_new[i, j] = u[i, j] + dt * du_dt[i, j]
             v_new[i, j] = v[i, j] + dt * dv_dt[i, j]
+
+    # Boundaries
+    u_new, v_new = apply_velocity_bc(u_new, v_new, bc_case)
 
     return u_new, v_new
 
@@ -41,6 +46,7 @@ def rk4_step(
     k4_u: Grid2D,
     k4_v: Grid2D,
     dt: float,
+    bc_case: int,
 ) -> tuple[Grid2D, Grid2D]:
     """
     Perform a fourth-order Runge-Kutta (RK4) time step for velocity fields.
@@ -50,6 +56,7 @@ def rk4_step(
     u_new = np.zeros_like(u)
     v_new = np.zeros_like(v)
 
+    # Interior points
     for i in prange(1, nx - 1):
         for j in range(1, ny - 1):
             u_new[i, j] = u[i, j] + (dt / 6.0) * (
@@ -58,6 +65,9 @@ def rk4_step(
             v_new[i, j] = v[i, j] + (dt / 6.0) * (
                 k1_v[i, j] + 2 * k2_v[i, j] + 2 * k3_v[i, j] + k4_v[i, j]
             )
+
+    # Boundaries
+    u_new, v_new = apply_velocity_bc(u_new, v_new, bc_case)
 
     return u_new, v_new
 
@@ -72,6 +82,7 @@ def semi_implicit_step(
     nu: float,
     dx: float,
     dy: float,
+    bc_case: int,
 ) -> tuple[Grid2D, Grid2D]:
     """
     Perform a semi-implicit time step for velocity fields, treating advection explicitly
@@ -83,6 +94,7 @@ def semi_implicit_step(
     v_new = np.zeros_like(v)
     denom = 1.0 + 2.0 * dt * nu * (1.0 / dx**2 + 1.0 / dy**2)
 
+    # Interior points
     for i in prange(1, nx - 1):
         for j in range(1, ny - 1):
             # Implicit diffusion for u
@@ -96,6 +108,9 @@ def semi_implicit_step(
                 (v[i, j + 1] + v[i, j - 1]) / dx**2 + (v[i + 1, j] + v[i - 1, j]) / dy**2
             )
             v_new[i, j] = (v[i, j] + dt * adv_v[i, j] + dt * diff_v) / denom
+
+    # Boundaries
+    u_new, v_new = apply_velocity_bc(u_new, v_new, bc_case)
 
     return u_new, v_new
 
@@ -130,7 +145,8 @@ class EulerIntegrator(TimeIntegratorStrategy):
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
         du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu, bc_case)
-        result = euler_step(u, v, du_dt, dv_dt, dt)
+        result = euler_step(u, v, du_dt, dv_dt, dt, bc_case)
+
         return cast(tuple[Grid2D, Grid2D], result)
 
 
@@ -182,7 +198,10 @@ class RK4Integrator(TimeIntegratorStrategy):
         k4_u, k4_v = method(u3, v3, p_prev, dx, dy, nu, bc_case)
 
         # Final update
-        result = rk4_step(u, v, k1_u, k1_v, k2_u, k2_v, k3_u, k3_v, k4_u, k4_v, dt)
+        result = rk4_step(
+            u, v, k1_u, k1_v, k2_u, k2_v, k3_u, k3_v, k4_u, k4_v, dt, bc_case
+        )
+
         return cast(tuple[Grid2D, Grid2D], result)
 
 
@@ -225,13 +244,14 @@ class PredictorCorrectorIntegrator(TimeIntegratorStrategy):
         du_dt2, dv_dt2 = method(u_star, v_star, p_prev, dx, dy, nu, bc_case)
 
         # Average predictor and corrector
-        nx, ny = u.shape
         u_new = u.copy()
         v_new = v.copy()
         u_new[1:-1, 1:-1] += 0.5 * dt * (du_dt1[1:-1, 1:-1] + du_dt2[1:-1, 1:-1])
         v_new[1:-1, 1:-1] += 0.5 * dt * (dv_dt1[1:-1, 1:-1] + dv_dt2[1:-1, 1:-1])
 
-        return cast(tuple[Grid2D, Grid2D], (u_new, v_new))
+        result = apply_velocity_bc(u_new, v_new, bc_case)
+
+        return result
 
 
 class SemiImplicitIntegrator(TimeIntegratorStrategy):
@@ -266,5 +286,6 @@ class SemiImplicitIntegrator(TimeIntegratorStrategy):
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
         du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu, bc_case)
-        result = semi_implicit_step(u, v, du_dt, dv_dt, dt, nu, dx, dy)
+        result = semi_implicit_step(u, v, du_dt, dv_dt, dt, nu, dx, dy, bc_case)
+
         return cast(tuple[Grid2D, Grid2D], result)
