@@ -162,7 +162,7 @@ class NavierStokesSolver2D(ABC):
             stream_func[-1, :] = stream_func[1, :]
             stream_func[:, 0] = stream_func[:, -2]
             stream_func[:, -1] = stream_func[:, 1]
-        elif self.bc_case == 2:  # No-flow boundaries
+        elif self.bc_case == 2:  # No normal flow through boundaries
             stream_func[:, 0] = 0  # Bottom wall
             stream_func[:, -1] = 0  # Top wall
             stream_func[0, :] = 0  # Left wall
