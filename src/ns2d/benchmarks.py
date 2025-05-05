@@ -19,8 +19,8 @@ def _taylor_green_analytical_solution(
         Tuple of u, v, and p components of the analytical solution
     """
     decay = np.exp(-2 * nu * t * np.pi**2)
-    u = np.cos(np.pi * x) * np.sin(np.pi * y) * decay
-    v = np.cos(np.pi * y) * np.sin(np.pi * x) * decay
+    u = np.sin(np.pi * x) * np.cos(np.pi * y) * decay
+    v = -np.cos(np.pi * x) * np.sin(np.pi * y) * decay
     p = -0.25 * (np.cos(2 * np.pi * x) + np.cos(2 * np.pi * y)) * decay**2
     return u, v, p
 
