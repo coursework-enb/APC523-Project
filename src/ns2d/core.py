@@ -157,11 +157,16 @@ class NavierStokesSolver2D(ABC):
         # TODO: revise solve_poisson such that we can input/output the pressure without mutation (safer)
         self.p = temp_p
 
-        # No-flow boundaries
-        stream_func[:, 0] = 0  # Bottom wall
-        stream_func[:, -1] = 0  # Top wall
-        stream_func[0, :] = 0  # Left wall
-        stream_func[-1, :] = 0  # Right wall
+        if self.bc_case == 1:  # Periodic BC
+            stream_func[0, :] = stream_func[-2, :]
+            stream_func[-1, :] = stream_func[1, :]
+            stream_func[:, 0] = stream_func[:, -2]
+            stream_func[:, -1] = stream_func[:, 1]
+        elif self.bc_case == 2:  # No-flow boundaries
+            stream_func[:, 0] = 0  # Bottom wall
+            stream_func[:, -1] = 0  # Top wall
+            stream_func[0, :] = 0  # Left wall
+            stream_func[-1, :] = 0  # Right wall
 
         return stream_func
 
