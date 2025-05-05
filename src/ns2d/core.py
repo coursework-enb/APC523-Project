@@ -10,7 +10,7 @@ from .benchmarks import (
     initialize_for_benchmark,
     validate_against_benchmark,
 )
-from .boundaries import apply_boundary_conditions
+from .boundaries import apply_pressure_bc, apply_velocity_bc
 from .utils import Grid2D
 from .vorticity import finite_difference_vorticity
 
@@ -86,9 +86,8 @@ class NavierStokesSolver2D(ABC):
         )
 
     def _apply_bc(self) -> None:
-        self.u, self.v, self.p = apply_boundary_conditions(
-            self.u, self.v, self.p, self.bc_case
-        )
+        self.u, self.v = apply_velocity_bc(self.u, self.v, self.bc_case)
+        self.p = apply_pressure_bc(self.p, self.bc_case)
 
     def set_time_integrator(self, integrator: TimeIntegratorStrategy) -> None:
         """Change the time integration strategy at runtime"""

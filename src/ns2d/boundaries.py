@@ -3,23 +3,20 @@ from numba import njit
 from .utils import Grid2D
 
 
-def apply_boundary_conditions(
-    u: Grid2D, v: Grid2D, p: Grid2D, bc_case: int
-) -> tuple[Grid2D, Grid2D, Grid2D]:
+def apply_velocity_bc(u: Grid2D, v: Grid2D, bc_case: int) -> tuple[Grid2D, Grid2D]:
     """
-    Apply boundary conditions to the velocity and pressure fields based on the specified case.
+    Apply boundary conditions to the velocity fields based on the specified case.
 
     Args:
-        u: 2D grid of x-component of velocity
-        v: 2D grid of y-component of velocity
-        p: 2D grid of pressure
-        bc_case: Integer indicating the benchmark case (1 for Taylor-Green Vortex, 2 for Lid-Driven Cavity)
+        u (Grid2D): 2D grid of x-component of velocity
+        v (Grid2D): 2D grid of y-component of velocity
+        bc_case (int): Integer indicating the benchmark case (1 for Taylor-Green Vortex, 2 for Lid-Driven Cavity)
 
     Returns:
-        Tuple of updated u, v, and p grids after applying boundary conditions
+        tuple[Grid2D, Grid2D]: Updated u and v grids after applying velocity boundary conditions
     """
     if bc_case == 1:
-        # Taylor-Green Vortex: Periodic boundary conditions
+        # TGV-type: Periodic boundary conditions
 
         u[0, :] = u[-2, :]  # Periodic in x-direction (left boundary)
         u[-1, :] = u[1, :]  # Periodic in x-direction (right boundary)
@@ -31,15 +28,9 @@ def apply_boundary_conditions(
         v[:, 0] = v[:, -2]
         v[:, -1] = v[:, 1]
 
-        p[0, :] = p[-2, :]
-        p[-1, :] = p[1, :]
-        p[:, 0] = p[:, -2]
-        p[:, -1] = p[:, 1]
-
     elif bc_case == 2:
-        # Lid-Driven Cavity: No-slip conditions on all walls except the top wall
+        # LDC-type: No-slip conditions on all walls except the top wall
         # Top wall has a tangential velocity (u=1, v=0), others have u=v=0
-        # Pressure boundary conditions are handled via Neumann conditions (dp/dn=0)
 
         # Bottom wall (y=0): No-slip (u=0, v=0)
         u[:, 0] = 0.0
@@ -57,7 +48,32 @@ def apply_boundary_conditions(
         u[-1, :] = 0.0
         v[-1, :] = 0.0
 
-        # Set boundary pressure equal to adjacent interior point
+    else:
+        raise ValueError(f"Unknown boundary condition case: {bc_case}")
+
+    return u, v
+
+
+def apply_pressure_bc(p: Grid2D, bc_case: int) -> Grid2D:
+    """
+    Apply boundary conditions to the pressure field based on the specified case.
+
+    Args:
+        p (Grid2D): 2D grid of pressure
+        bc_case (int): Integer indicating the benchmark case (1 for Taylor-Green Vortex, 2 for Lid-Driven Cavity)
+
+    Returns:
+        Grid2D: Updated p grid after applying pressure boundary conditions
+    """
+    if bc_case == 1:
+        # Periodic boundary conditions
+        p[0, :] = p[-2, :]
+        p[-1, :] = p[1, :]
+        p[:, 0] = p[:, -2]
+        p[:, -1] = p[:, 1]
+
+    elif bc_case == 2:
+        # Neumann conditions (dp/dn=0) for pressure
         p[:, 0] = p[:, 1]  # Bottom wall
         p[:, -1] = p[:, -2]  # Top wall
         p[0, :] = p[1, :]  # Left wall
@@ -66,7 +82,7 @@ def apply_boundary_conditions(
     else:
         raise ValueError(f"Unknown boundary condition case: {bc_case}")
 
-    return u, v, p
+    return p
 
 
 @njit()
