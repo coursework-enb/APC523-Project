@@ -27,7 +27,7 @@ def _taylor_green_analytical_solution(
 
 def initialize_for_benchmark(
     benchmark: str, nx: int, ny: int
-) -> tuple[Grid2D, Grid2D, Grid2D, int]:
+) -> tuple[Grid2D, Grid2D, Grid2D, Grid2D, Grid2D, int]:
     """
     Initialize velocity and pressure fields based on the specified benchmark problem.
     Note: ensure correct BC are applied for both (periodic vs tangential velocity on top)
@@ -36,30 +36,35 @@ def initialize_for_benchmark(
         benchmark: The benchmark problem to initialize for ('Taylor-Green Vortex' or 'Lid-Driven Cavity')
     """
     if benchmark == "Taylor-Green Vortex":
+        case = 1
+
         x = np.linspace(-1, 1, nx)
         y = np.linspace(-1, 1, ny)
         X, Y = np.meshgrid(x, y)
 
-        u = np.cos(X) * np.sin(Y)
-        v = -np.cos(Y) * np.sin(X)
-        p = 0.25 * (np.cos(2 * X) + np.cos(2 * Y))
-        case = 1
+        u_init = np.cos(np.pi * X) * np.sin(np.pi * Y)
+        v_init = -np.sin(np.pi * X) * np.cos(np.pi * Y)
+        p_init = -0.25 * (np.cos(2 * np.pi * X) + np.cos(2 * np.pi * Y))
 
     elif benchmark == "Lid-Driven Cavity":
-        u = np.zeros((nx, ny))
-        v = np.zeros((nx, ny))
-        p = np.zeros((nx, ny))
-
-        # Set top wall velocity to u=1 (lid moving to the right)
-        u[:, -1] = 1.0
-        # No-slip conditions (u=v=0) on other walls are already set by zero initialization
-
         case = 2
+
+        x = np.linspace(0, 1, nx)
+        y = np.linspace(0, 1, ny)
+        X, Y = np.meshgrid(x, y)
+
+        # Zero velocity and pressure
+        u_init = np.zeros_like(X)
+        v_init = np.zeros_like(Y)
+        p_init = np.zeros_like(X)
+
+        # Top wall velocity u=(1,0)
+        u_init[-1, :] = 1.0
 
     else:
         raise ValueError(f"Unknown benchmark: {benchmark}")
 
-    return u, v, p, case
+    return X, Y, u_init, v_init, p_init, case
 
 
 def validate_against_benchmark(

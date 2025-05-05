@@ -1,4 +1,7 @@
-# TODO: Make sure that boundary conditions are enforced consistently and coherently
+# TODO:
+# - Make sure that boundary conditions are enforced consistently and coherently
+# - Should X and Y be actually used?
+# - Define a proper default initialization (when no benchmark) + manual init
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -62,7 +65,6 @@ class NavierStokesSolver2D(ABC):
     nu: float
     integrator: TimeIntegratorStrategy
     discrete_navier_stokes: SpatialDiscretizationStrategy
-    bc_case: int = 0  # default: periodic boundary conditions
     fixed_dt: bool = True
     min_dt: float = 1e-8
     max_dt: float = 1.0
@@ -71,6 +73,9 @@ class NavierStokesSolver2D(ABC):
     u: Grid2D = field(init=False)
     v: Grid2D = field(init=False)
     p: Grid2D = field(init=False)
+    bc_case: int = field(init=False)  # set when running initialize_fields:
+    X: Grid2D = field(init=False)
+    Y: Grid2D = field(init=False)
 
     def __post_init__(self) -> None:
         self.u = zeros((self.nx, self.ny), dtype=float64)
@@ -105,10 +110,11 @@ class NavierStokesSolver2D(ABC):
     def initialize_fields(self, benchmark: str | None) -> None:
         """Initialize velocity and pressure fields."""
         if benchmark is not None:
-            self.u, self.v, self.p, self.bc_case = initialize_for_benchmark(
-                benchmark, self.nx, self.ny
+            self.X, self.Y, self.u, self.v, self.p, self.bc_case = (
+                initialize_for_benchmark(benchmark, self.nx, self.ny)
             )
         else:
+            self.bc_case = 0
             print("WARNING: No benchmark")
             self.u.fill(0.0)
             self.v.fill(0.0)
