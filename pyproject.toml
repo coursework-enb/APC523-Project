@@ -20,6 +20,7 @@ dependencies = [
     "numpy>=1.26",
     "numba>=0.59",
     "typing-extensions>=4.0",
+    "pyamg>=4.3",
 ]
 
 [project.optional-dependencies]
