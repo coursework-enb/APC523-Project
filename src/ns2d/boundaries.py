@@ -93,12 +93,11 @@ def apply_bc_rhs(
 ) -> tuple[Grid2D, Grid2D]:
     """
     Apply boundary conditions to the RHS time derivatives for momentum equations.
-    Handles periodic BC for Taylor-Green Vortex and no-slip BC for Lid-Driven Cavity.
 
     :return: Updated time derivatives (du_dt, dv_dt) with BC applied.
     """
 
-    if bc_case == 1:  # Periodic
+    if bc_case == 1:
         # Mirror the derivatives at boundaries to enforce periodicity
         du_dt[0, :] = du_dt[-2, :]
         du_dt[-1, :] = du_dt[1, :]
@@ -110,7 +109,7 @@ def apply_bc_rhs(
         dv_dt[:, 0] = dv_dt[:, -2]
         dv_dt[:, -1] = dv_dt[:, 1]
 
-    elif bc_case == 2:  # No-slip BC (except top wall)
+    elif bc_case == 2:
         # Ensure that time derivatives do not alter fixed boundary values of velocity
         du_dt[:, 0] = 0.0
         du_dt[:, -1] = 0.0
