@@ -1,10 +1,11 @@
+# TODO: Check boundary conditions for divergence
+
 from typing import cast
 
 import numpy as np
 import pyamg
 from scipy.sparse import diags, eye, kron
 
-from .boundaries import apply_pressure_bc, apply_velocity_bc
 from .core import NavierStokesSolver2D
 from .utils import Grid2D
 
@@ -82,13 +83,13 @@ class JacobiSolver(NavierStokesSolver2D):
     def solve_poisson(self) -> None:
         rhs = divergence(self.u, self.v, self.dx, self.dy) / self.dt
         self.p = pressure_poisson_multigrid(rhs, self.dx, self.dy, smoother="jacobi")
-        self.p = apply_pressure_bc(self.p, self.bc_case)
+        self._apply_bc(uv=False)
 
     def update_velocity(self) -> None:
         self.u, self.v = velocity_correction(
             self.u, self.v, self.p, self.dx, self.dy, self.dt
         )
-        self.u, self.v = apply_velocity_bc(self.u, self.v, self.bc_case)
+        self._apply_bc(p=False)
 
 
 class GaussSeidelSolver(NavierStokesSolver2D):
@@ -97,10 +98,10 @@ class GaussSeidelSolver(NavierStokesSolver2D):
         self.p = pressure_poisson_multigrid(
             rhs, self.dx, self.dy, smoother="gauss_seidel"
         )
-        self.p = apply_pressure_bc(self.p, self.bc_case)
+        self._apply_bc(uv=False)
 
     def update_velocity(self) -> None:
         self.u, self.v = velocity_correction(
             self.u, self.v, self.p, self.dx, self.dy, self.dt
         )
-        self.u, self.v = apply_velocity_bc(self.u, self.v, self.bc_case)
+        self._apply_bc(p=False)
