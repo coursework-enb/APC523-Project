@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from numpy import float64, sum, zeros
+from numpy import float64, inf, sum, zeros
 
 from .adaptive_time import adapt_time_step
 from .benchmarks import initialize_for_benchmark, validate_against_benchmark
@@ -166,25 +166,28 @@ class NavierStokesSolver2D(ABC):
             self.compute_kinetic_energy(),
             self.solve_stream_function(),
         )
+        # TODO: Make it more efficient by not computing kinetic energy and stream when not needed
         # TODO: add visual for the error at each cell when Taylor-Green Vortex
 
     def integrate(
         self,
-        num_steps: int,
+        num_steps: int | None = None,
         end_time: float = 2.5,
-        initialize: bool = True,
+        num_step_vorticity: int | None = None
         benchmark: str | None = "Lid-Driven Cavity",
     ) -> None:
         """Run the simulation for a specified number of time steps.
 
         :param num_steps: Number of time steps to simulate
         """
-        if initialize:
-            self.initialize_fields(benchmark)
+        self.initialize_fields(benchmark)
 
         current_time = 0.0
         step = 0
         current_dt = self.dt
+
+        if num_steps is None:
+            num_steps: float = inf
 
         while current_time < end_time and step < num_steps:
             # Ensure we don't overshoot the end time
@@ -234,8 +237,8 @@ class NavierStokesSolver2D(ABC):
             step += 1
 
             # Optional: Compute vorticity at intervals
-            # if step % 10 == 0:
-            #     vorticity = self.compute_vorticity()
+            if num_step_vorticity is not None and num_step_vorticity != 0 and step % num_step_vorticity == 0:
+                vorticity = self.compute_vorticity()
 
         if benchmark is not None:
             self.validate(benchmark, current_time)
