@@ -42,7 +42,7 @@ def initialize_for_benchmark(
         y = np.linspace(-1, 1, ny)
         X, Y = np.meshgrid(x, y)
 
-        u_init, v_init, p_init = _taylor_green_analytical_solution(x, y, 0, 1)
+        u_init, v_init, p_init = _taylor_green_analytical_solution(X, Y, 0, 1)
 
     elif benchmark == "Lid-Driven Cavity":
         case = 2
