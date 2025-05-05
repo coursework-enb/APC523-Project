@@ -1,5 +1,3 @@
-from typing import cast
-
 import numpy as np
 from numba import njit, prange
 from numpy.typing import NDArray
@@ -7,6 +5,7 @@ from numpy.typing import NDArray
 from .utils import Grid2D
 
 
+@njit()
 def _get_stencil_coefficients(order: int) -> tuple[NDArray[np.float64], int]:
     """
     Return stencil coefficients and offset for central finite difference of given order.
@@ -147,4 +146,4 @@ def finite_difference_vorticity(
             dv_dx = (v[i, j + 1] - v[i, j - 1]) / (2 * dx)
         vorticity[i, j] = dv_dx - du_dy
 
-    return cast(Grid2D, vorticity)
+    return vorticity

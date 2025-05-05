@@ -72,6 +72,7 @@ def validate_against_benchmark(
     current_time: float,
     ke_simulated: float,
     stream_func: Grid2D,
+    verbose: bool,
     reference_min_stream: float = -0.061076605,
 ) -> float:
     """
@@ -95,10 +96,11 @@ def validate_against_benchmark(
         ke_analytical = 0.5 * dx * dy * np.sum(u_analytical**2 + v_analytical**2)
         error_ke: float = abs(ke_simulated - ke_analytical)
 
-        print(f"Taylor-Green Vortex Validation at t={current_time}s:")
-        print(f"Simulated Kinetic Energy: {ke_simulated}")
-        print(f"Analytical Kinetic Energy: {ke_analytical}")
-        print(f"Absolute Error in Kinetic Energy: {error_ke}")
+        if verbose:
+            print(f"Taylor-Green Vortex Validation at t={current_time}s:")
+            print(f"Simulated Kinetic Energy: {ke_simulated}")
+            print(f"Analytical Kinetic Energy: {ke_analytical}")
+            print(f"Absolute Error in Kinetic Energy: {error_ke}")
 
         return error_ke
 
@@ -108,10 +110,11 @@ def validate_against_benchmark(
         min_stream_func = float(np.min(stream_func))
         error_stream: float = abs(min_stream_func - reference_min_stream)
 
-        print("Lid-Driven Cavity Validation at t=2.5s:")
-        print(f"Simulated Minimum Stream Function: {min_stream_func}")
-        print(f"Reference Minimum Stream Function: {reference_min_stream}")
-        print(f"Absolute Error in Stream Function Minimum: {error_stream}")
+        if verbose:
+            print("Lid-Driven Cavity Validation at t=2.5s:")
+            print(f"Simulated Minimum Stream Function: {min_stream_func}")
+            print(f"Reference Minimum Stream Function: {reference_min_stream}")
+            print(f"Absolute Error in Stream Function Minimum: {error_stream}")
 
         return error_stream
 

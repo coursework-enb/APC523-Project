@@ -1,5 +1,3 @@
-from typing import cast
-
 import numpy as np
 from numba import njit, prange
 
@@ -26,9 +24,6 @@ def euler_step(
         for j in range(1, ny - 1):
             u_new[i, j] = u[i, j] + dt * du_dt[i, j]
             v_new[i, j] = v[i, j] + dt * dv_dt[i, j]
-
-    # Boundaries
-    u_new, v_new = apply_velocity_bc(u_new, v_new, bc_case)
 
     return u_new, v_new
 
@@ -65,9 +60,6 @@ def rk4_step(
             v_new[i, j] = v[i, j] + (dt / 6.0) * (
                 k1_v[i, j] + 2 * k2_v[i, j] + 2 * k3_v[i, j] + k4_v[i, j]
             )
-
-    # Boundaries
-    u_new, v_new = apply_velocity_bc(u_new, v_new, bc_case)
 
     return u_new, v_new
 
@@ -109,9 +101,6 @@ def semi_implicit_step(
             )
             v_new[i, j] = (v[i, j] + dt * adv_v[i, j] + dt * diff_v) / denom
 
-    # Boundaries
-    u_new, v_new = apply_velocity_bc(u_new, v_new, bc_case)
-
     return u_new, v_new
 
 
@@ -145,9 +134,12 @@ class EulerIntegrator(TimeIntegratorStrategy):
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
         du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu, bc_case)
-        result = euler_step(u, v, du_dt, dv_dt, dt, bc_case)
+        u_new, v_new = euler_step(u, v, du_dt, dv_dt, dt, bc_case)
 
-        return cast(tuple[Grid2D, Grid2D], result)
+        # Boundaries
+        result = apply_velocity_bc(u_new, v_new, bc_case)
+
+        return result
 
 
 class RK4Integrator(TimeIntegratorStrategy):
@@ -198,11 +190,14 @@ class RK4Integrator(TimeIntegratorStrategy):
         k4_u, k4_v = method(u3, v3, p_prev, dx, dy, nu, bc_case)
 
         # Final update
-        result = rk4_step(
+        u_new, v_new = rk4_step(
             u, v, k1_u, k1_v, k2_u, k2_v, k3_u, k3_v, k4_u, k4_v, dt, bc_case
         )
 
-        return cast(tuple[Grid2D, Grid2D], result)
+        # Boundaries
+        result = apply_velocity_bc(u_new, v_new, bc_case)
+
+        return result
 
 
 class PredictorCorrectorIntegrator(TimeIntegratorStrategy):
@@ -286,6 +281,9 @@ class SemiImplicitIntegrator(TimeIntegratorStrategy):
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
         du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu, bc_case)
-        result = semi_implicit_step(u, v, du_dt, dv_dt, dt, nu, dx, dy, bc_case)
+        u_new, v_new = semi_implicit_step(u, v, du_dt, dv_dt, dt, nu, dx, dy, bc_case)
 
-        return cast(tuple[Grid2D, Grid2D], result)
+        # Boundaries
+        result = apply_velocity_bc(u_new, v_new, bc_case)
+
+        return result
