@@ -19,9 +19,9 @@ def _taylor_green_analytical_solution(
         Tuple of u, v, and p components of the analytical solution
     """
     decay = np.exp(-2 * nu * t * np.pi**2)
-    u = np.cos(x) * np.sin(y) * decay
-    v = -np.cos(y) * np.sin(x) * decay
-    p = 0.25 * (np.cos(2 * x) + np.cos(2 * y)) * decay**2
+    u = np.cos(np.pi * x) * np.sin(np.pi * y) * decay
+    v = np.cos(np.pi * y) * np.sin(np.pi * x) * decay
+    p = -0.25 * (np.cos(2 * np.pi * x) + np.cos(2 * np.pi * y)) * decay**2
     return u, v, p
 
 
@@ -42,9 +42,7 @@ def initialize_for_benchmark(
         y = np.linspace(-1, 1, ny)
         X, Y = np.meshgrid(x, y)
 
-        u_init = np.cos(np.pi * X) * np.sin(np.pi * Y)
-        v_init = -np.sin(np.pi * X) * np.cos(np.pi * Y)
-        p_init = -0.25 * (np.cos(2 * np.pi * X) + np.cos(2 * np.pi * Y))
+        u_init, v_init, p_init = _taylor_green_analytical_solution(x, y, 0, 1)
 
     elif benchmark == "Lid-Driven Cavity":
         case = 2
