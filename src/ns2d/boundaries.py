@@ -111,20 +111,15 @@ def apply_bc_rhs(
         dv_dt[:, -1] = dv_dt[:, 1]
 
     elif bc_case == 2:  # No-slip BC (except top wall)
-        # Bottom wall (y=0): u=0, v=0
+        # Ensure that time derivatives do not alter fixed boundary values of velocity
         du_dt[:, 0] = 0.0
-        dv_dt[:, 0] = 0.0
-
-        # Top wall (y=ny-1): u=1, v=0
         du_dt[:, -1] = 0.0
-        dv_dt[:, -1] = 0.0
-
-        # Left wall (x=0): u=0, v=0
         du_dt[0, :] = 0.0
-        dv_dt[0, :] = 0.0
-
-        # Right wall (x=nx-1): u=0, v=0
         du_dt[-1, :] = 0.0
+
+        dv_dt[:, 0] = 0.0
+        dv_dt[:, -1] = 0.0
+        dv_dt[0, :] = 0.0
         dv_dt[-1, :] = 0.0
 
     return du_dt, dv_dt
