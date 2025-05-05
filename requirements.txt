@@ -97,7 +97,6 @@ nodeenv==1.9.1
 notebook==7.3.3
 notebook-shim==0.2.4
 nox==2025.2.9
--e git+https://github.com/coursework-enb/APC523-Project.git#egg=ns2d
 numba==0.61.0
 numpy==2.1.0
 nvidia-ml-py==12.570.86
