@@ -18,7 +18,7 @@ def adapt_time_step(
 
     Args:
         u_prev, v_prev: Previous velocity components (2D arrays)
-        u_curr, v_curr: Current velocity components after a tentative step (2D arrays)
+        u_curr, v_curr: Current velocity components after a correction step (2D arrays)
         dt: Current time step
         min_dt: Minimum allowed time step
         max_dt: Maximum allowed time step
