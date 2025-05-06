@@ -247,7 +247,6 @@ class NavierStokesSolver2D(ABC):
 
         current_time = 0.0
         step = 0
-        current_dt = self.dt
 
         max_steps: int | float = num_steps if num_steps is not None else float("inf")
         end_time = end_time if end_time is not None else float("inf")
@@ -263,18 +262,17 @@ class NavierStokesSolver2D(ABC):
 
         while current_time < end_time and step < max_steps:
             # Ensure we don't overshoot the end time
-            current_dt = min(current_dt, end_time - current_time)
-            current_cfl = self._estimate_cfl()
+            self.dt = min(self.dt, end_time - current_time)
 
             u_prev = self.u.copy()
             v_prev = self.v.copy()
 
-            # Perform a tentative time step
+            # Perform a tentative step
             self.u, self.v = self.integrator.advance_time(
                 self.u,
                 self.v,
                 self.p,
-                current_dt,
+                self.dt,
                 self.discrete_navier_stokes,
                 self.dx,
                 self.dy,
@@ -282,7 +280,12 @@ class NavierStokesSolver2D(ABC):
                 self.bc_case,
             )
 
+            # Enforce incompressibility
+            self.solve_poisson()
+            self.update_velocity()
+
             # If adaptive time stepping is enabled, check if the step is acceptable
+            current_cfl = self._estimate_cfl()
             if not self.fixed_dt:
                 if cfl_based:
                     dt_new, accept = cfl_time_step(
@@ -294,7 +297,7 @@ class NavierStokesSolver2D(ABC):
                         v_prev,
                         self.u,
                         self.v,
-                        current_dt,
+                        self.dt,
                         self.min_dt,
                         self.max_dt,
                         self.tol,
@@ -303,13 +306,9 @@ class NavierStokesSolver2D(ABC):
                     # If strong adaptive is enabled and step is rejected, revert and retry
                     self.u = u_prev
                     self.v = v_prev
-                    current_dt = dt_new
+                    self.dt = dt_new
                     continue
-                current_dt = dt_new
-
-            # Enforce incompressibility
-            self.solve_poisson()
-            self.update_velocity()
+                self.dt = dt_new
 
             # Record
             cfl_values.append(current_cfl)
@@ -319,7 +318,7 @@ class NavierStokesSolver2D(ABC):
                 errors.append(error_tgv)
 
             # Advance time and step counter
-            current_time += current_dt
+            current_time += self.dt
             step += 1
 
             progress_bar.update(1)
