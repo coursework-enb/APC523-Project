@@ -69,8 +69,8 @@ def validate_against_benchmark(
     benchmark: str,
     dx: float,
     dy: float,
-    nx: int,
-    ny: int,
+    X: Grid2D,
+    Y: Grid2D,
     nu: float,
     current_time: float,
     ke_simulated: float,
@@ -86,11 +86,7 @@ def validate_against_benchmark(
         reference_min_stream: Reference value for the minimum stream function, default at the final time T = 2.5 seconds
     """
     if benchmark == "Taylor-Green Vortex":
-        # Set up grid for analytical solution
-        x = np.linspace(-1, 1, nx)
-        y = np.linspace(-1, 1, ny)
-        X, Y = np.meshgrid(x, y)
-
+        # Compute analytical solution
         u_analytical, v_analytical, p_analytical = _taylor_green_analytical_solution(
             X, Y, current_time, nu
         )
