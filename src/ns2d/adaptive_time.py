@@ -38,3 +38,26 @@ def adapt_time_step(
         dt_new = max(min_dt, dt * 0.5)  # halve the time step if rejected
 
     return dt_new, bool(accept)
+
+
+def cfl_time_step(
+    CFL: float,
+    dt: float,
+    min_dt: float,
+    max_dt: float,
+    target_CFL: float,
+) -> tuple[float, bool]:
+    """
+    Adapt the time step based on the maximum CFL.
+
+    Returns:
+        tuple: (new time step, whether the step is accepted)
+    """
+
+    accept = CFL <= target_CFL
+    if accept:
+        dt_new = min(max_dt, dt * 2.0)  # double the time step if accepted
+    else:
+        dt_new = max(min_dt, dt * 0.5)  # halve the time step if rejected
+
+    return dt_new, bool(accept)

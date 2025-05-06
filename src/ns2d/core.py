@@ -1,6 +1,5 @@
 # TODO:
 # - Make sure that boundary conditions are enforced consistently and coherently
-# - Leverage CFL for adaptive time stepping to avoid having CFL over 0.2
 # - Add external forces
 # - Define a proper default initialization (when no benchmark) + manual init
 # - Should X and Y be actually used?
@@ -11,7 +10,7 @@ from dataclasses import dataclass, field
 from numpy import float64, maximum, sum, zeros
 from tqdm import tqdm
 
-from .adaptive_time import adapt_time_step
+from .adaptive_time import adapt_time_step, cfl_time_step
 from .benchmarks import (
     initialize_for_benchmark,
     validate_against_benchmark,
@@ -71,6 +70,7 @@ class NavierStokesSolver2D(ABC):
     min_dt: float = 1e-8
     max_dt: float = 1.0
     tol: float = 1e-1  # default: 10% rule
+    target_CFL: float = 0.2
     strong_adaptive: bool = False
     u: Grid2D = field(init=False)
     v: Grid2D = field(init=False)
@@ -102,6 +102,7 @@ class NavierStokesSolver2D(ABC):
             self.p = apply_pressure_bc(self.p, self.bc_case)
 
     def _estimate_cfl(self) -> float:
+        """Compute the maximum Courant-Friedrichs-Lewy (CFL) number"""
         cfl: float = maximum(self.u * self.dt / self.dx, self.v * self.dt / self.dy).max()
         return cfl
 
@@ -229,6 +230,7 @@ class NavierStokesSolver2D(ABC):
         end_time: float | None = 2.5,
         num_step_vorticity: int | None = None,
         benchmark: str | None = "Lid-Driven Cavity",
+        cfl_based: bool = True,
     ) -> (
         tuple[list[float], list[float], float]
         | tuple[list[float], list[float], list[float]]
@@ -262,6 +264,7 @@ class NavierStokesSolver2D(ABC):
         while current_time < end_time and step < max_steps:
             # Ensure we don't overshoot the end time
             current_dt = min(current_dt, end_time - current_time)
+            current_cfl = self._estimate_cfl()
 
             u_prev = self.u.copy()
             v_prev = self.v.copy()
@@ -281,16 +284,21 @@ class NavierStokesSolver2D(ABC):
 
             # If adaptive time stepping is enabled, check if the step is acceptable
             if not self.fixed_dt:
-                dt_new, accept = adapt_time_step(
-                    u_prev,
-                    v_prev,
-                    self.u,
-                    self.v,
-                    current_dt,
-                    self.min_dt,
-                    self.max_dt,
-                    self.tol,
-                )
+                if cfl_based:
+                    cfl_time_step(
+                        current_cfl, self.dt, self.min_dt, self.max_dt, self.target_CFL
+                    )
+                else:
+                    dt_new, accept = adapt_time_step(
+                        u_prev,
+                        v_prev,
+                        self.u,
+                        self.v,
+                        current_dt,
+                        self.min_dt,
+                        self.max_dt,
+                        self.tol,
+                    )
                 if self.strong_adaptive and not accept:
                     # If strong adaptive is enabled and step is rejected, revert and retry
                     self.u = u_prev
@@ -304,7 +312,7 @@ class NavierStokesSolver2D(ABC):
             self.update_velocity()
 
             # Record
-            cfl_values.append(self._estimate_cfl())
+            cfl_values.append(current_cfl)
             time_values.append(current_time)
             if benchmark == "Taylor-Green Vortex":
                 error_tgv: float = self.validate(benchmark, current_time)
