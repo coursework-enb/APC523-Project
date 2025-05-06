@@ -6,7 +6,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from numpy import float64, maximum, sum, zeros, zero_like
+from numpy import float64, maximum, sum, zeros, zeros_like
 from tqdm import tqdm
 
 from .adaptive_time import adapt_time_step, cfl_time_step
@@ -210,7 +210,7 @@ class NavierStokesSolver2D(ABC):
         # Don't compute kinetic energy and stream when not needed
         if benchmark == "Taylor-Green Vortex":
             ke_simulated = self.compute_kinetic_energy()
-            stream_func = np.zeros_like(self.u)
+            stream_func = zeros_like(self.u)
         elif benchmark == "Lid-Driven Cavity":
             ke_simulated = 0.0
             stream_func = self.solve_stream_function()
