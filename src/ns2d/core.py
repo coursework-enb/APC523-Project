@@ -2,7 +2,6 @@
 # - Make sure that boundary conditions are enforced consistently and coherently
 # - Add external forces
 # - Define a proper default initialization (when no benchmark) + manual init
-# - Should X and Y be actually used?
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -212,8 +211,8 @@ class NavierStokesSolver2D(ABC):
             benchmark,
             self.dx,
             self.dy,
-            self.nx,
-            self.ny,
+            self.X,
+            self.Y,
             self.nu,
             current_time,
             self.compute_kinetic_energy(),
