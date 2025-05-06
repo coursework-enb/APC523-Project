@@ -285,7 +285,7 @@ class NavierStokesSolver2D(ABC):
             # If adaptive time stepping is enabled, check if the step is acceptable
             if not self.fixed_dt:
                 if cfl_based:
-                    cfl_time_step(
+                    dt_new, accept = cfl_time_step(
                         current_cfl, self.dt, self.min_dt, self.max_dt, self.target_CFL
                     )
                 else:
