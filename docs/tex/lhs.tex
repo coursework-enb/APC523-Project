@@ -1,9 +1,55 @@
 \section{Prediction Step}
 
+The prediction step in a pressure-based Navier-Stokes solver estimates the intermediate velocity field before applying pressure correction. This step advances the momentum equations without enforcing incompressibility.
+
 \subsection{Explicit Schemes}
+
+Explicit time integration schemes compute the velocity update using only values from the current time step. For example, the Forward Euler method updates the velocity as:
+\begin{equation}
+\mathbf{u}^{n+1} = \mathbf{u}^n + \Delta t \cdot \left( -\mathbf{u}^n \cdot \nabla \mathbf{u}^n + \nu \nabla^2 \mathbf{u}^n \right)
+\end{equation}
+
+In the provided code, this is implemented as:
+\begin{verbatim}
+u\_new\[1:-1, 1:-1] = u\[1:-1, 1:-1] + dt \* dudt1\[1:-1, 1:-1]
+v\_new\[1:-1, 1:-1] = v\[1:-1, 1:-1] + dt \* dvdt1\[1:-1, 1:-1]
+\end{verbatim}
+Here, \$\texttt{dudt1}\$ and \$\texttt{dvdt1}\$ contain the explicit evaluation of all right-hand side terms at time \$n\$.
 
 \subsection{Semi-implicit Schemes}
 
+Semi-implicit methods treat some terms explicitly (advection) and others implicitly (diffusion), improving stability without fully solving a linear system.
+
 \subsubsection{Explicit Advection and Implicit Diffusion}
 
-\subsubsection{BDF with Extrapolation for Advection}
+This scheme discretizes:
+\begin{equation}
+\frac{\mathbf{u}^{n+1} - \mathbf{u}^n}{\Delta t} = - (\mathbf{u} \cdot \nabla \mathbf{u})^n + \nu \nabla^2 \mathbf{u}^{n+1}
+\end{equation}
+
+The diffusion term is treated implicitly by approximating \$\nabla^2 \mathbf{u}^{n+1}\$ using neighboring values of \$\mathbf{u}^{n+1}\$. The update formula for \$u\$ becomes:
+\begin{equation}
+\begin{aligned}
+u
+u
+u
+u
+u
+u
+u
+
+u\_{i,j}^{n+1} = \frac{u\_{i,j}^n + \Delta t \cdot \left\[- u\_{i,j}^n \frac{u\_{i,j}^n - u\_{i,j-1}^n}{\Delta x} - v\_{i,j}^n \frac{u\_{i,j}^n - u\_{i-1,j}^n}{\Delta y} \right] + \\
+\Delta t \cdot \nu \left( \frac{u\_{i+1,j}^{n+1} + u\_{i-1,j}^{n+1}}{\Delta x^2} + \frac{u\_{i,j+1}^{n+1} + u\_{i,j-1}^{n+1}}{\Delta y^2} \right)}{1 + 2 \Delta t \nu \left( \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} \right)}
+\end{aligned}
+\end{equation}
+
+This formulation avoids solving a global matrix system by using a Jacobi-like update. In the code, it is implemented as:
+\begin{verbatim}
+u\_new\[1:-1, 1:-1] = (
+u\[1:-1, 1:-1] + dt \* adv\_u +
+dt \* nu \* ((u\[1:-1, 2:] + u\[1:-1, 0:-2]) / dx**2 +
+(u\[2:, 1:-1] + u\[0:-2, 1:-1]) / dy**2))&#x20;
+/ (1 + 2 \* dt \* nu \* (1/dx**2 + 1/dy**2))
+\end{verbatim}
+
+This allows larger time steps while remaining efficient and relatively easy to implement.
