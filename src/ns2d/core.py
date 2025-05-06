@@ -334,7 +334,7 @@ class NavierStokesSolver2D(ABC):
         progress_bar.close()
 
         if benchmark == "Lid-Driven Cavity":
-            error_ldc: float = self.validate(benchmark, current_time, verbose=True)
+            error_ldc: float = self.validate(benchmark, end_time, verbose=True)
             return time_values, cfl_values, error_ldc
         elif benchmark == "Taylor-Green Vortex":
             return time_values, cfl_values, errors
