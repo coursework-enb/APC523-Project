@@ -236,7 +236,7 @@ class NavierStokesSolver2D(ABC):
 
     def _cfl_time(self) -> float:
         """Provides the new time step purely based on CFL"""
-        velocity_magnitude = np.sqrt(self.u**2 + self.v**2)
+        velocity_magnitude = np.sqrt(self.u**2 + self.v**2)  # TODO: overflow issue in square
         max_velocity = np.max(velocity_magnitude)
 
         if np.isclose(max_velocity, 0.0):
@@ -255,8 +255,8 @@ class NavierStokesSolver2D(ABC):
         end_time: float | None = 2.5,
         num_step_vorticity: int | None = None,
         benchmark: str | None = "Lid-Driven Cavity",
-        cfl_based: bool = True,
-        cfl_adapt: bool = False,
+        cfl_based: bool = False,
+        cfl_adapt: bool = True,
     ) -> (
         tuple[list[float], list[float], float]
         # | tuple[list[float], list[float], list[float]]
