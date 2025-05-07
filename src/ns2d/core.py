@@ -259,14 +259,15 @@ class NavierStokesSolver2D(ABC):
         cfl_adapt: bool = False,
     ) -> (
         tuple[list[float], list[float], float]
-        | tuple[list[float], list[float], list[float]]
+        # | tuple[list[float], list[float], list[float]]
         | tuple[list[float], list[float]]
     ):
         """Run the simulation for a specified number of time steps.
 
         :param num_steps: Number of time steps to simulate
         """
-        assert not (cfl_based & cfl_adapt), "Make a choice concerning time step update"
+        if cfl_based & cfl_adapt:
+            raise ValueError("Make a choice concerning time step update")
 
         if num_steps is None and end_time is None:
             raise ValueError("Needs either num_steps or end_time")
@@ -281,8 +282,8 @@ class NavierStokesSolver2D(ABC):
 
         cfl_values = []
         time_values = []
-        if benchmark == "Taylor-Green Vortex":
-            errors = []
+        # if benchmark == "Taylor-Green Vortex":
+        #     errors = []
 
         # If num_steps is provided, use it as the total; otherwise, estimate based on end_time and dt
         total_steps = num_steps if num_steps is not None else int(end_time / self.dt) + 1
@@ -343,9 +344,9 @@ class NavierStokesSolver2D(ABC):
             # Record
             cfl_values.append(current_cfl)
             time_values.append(current_time)
-            if benchmark == "Taylor-Green Vortex":
-                error_tgv: float = self.validate(benchmark, current_time)
-                errors.append(error_tgv)
+            # if benchmark == "Taylor-Green Vortex":
+            #     error_tgv: float = self.validate(benchmark, current_time)
+            #     errors.append(error_tgv)
 
             # Advance time and step counter
             current_time += self.dt
@@ -367,6 +368,7 @@ class NavierStokesSolver2D(ABC):
             error_ldc: float = self.validate(benchmark, end_time, verbose=True)
             return time_values, cfl_values, error_ldc
         elif benchmark == "Taylor-Green Vortex":
-            return time_values, cfl_values, errors
+            error_tgv: float = self.validate(benchmark, current_time)
+            return time_values, cfl_values, error_tgv
         else:
             return time_values, cfl_values
