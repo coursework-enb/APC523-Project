@@ -1,0 +1,68 @@
+\section{Appendix}
+\subsection{Semi-Implicit Scheme Derivation}
+
+We begin with the 2D incompressible Navier-Stokes momentum equation for the $u$-velocity component (ignoring pressure for now):
+\[
+\frac{\partial u}{\partial t} + u \frac{\partial u}{\partial x} + v \frac{\partial u}{\partial y} = \nu \left( \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} \right)
+\]
+We discretize in time using a semi-implicit scheme:
+\[
+\frac{u^{n+1}_{i,j} - u^n_{i,j}}{\Delta t} + \left( u \frac{\partial u}{\partial x} + v \frac{\partial u}{\partial y} \right)^n = \nu \nabla^2 u^{n+1}_{i,j}
+\]
+Use first-order upwind or central differences for the advection terms at time $n$:
+\[
+\left( u \frac{\partial u}{\partial x} \right)^n_{i,j} \approx u^n_{i,j} \cdot \frac{u^n_{i,j} - u^n_{i,j-1}}{\Delta x}
+\]
+\[
+\left( v \frac{\partial u}{\partial y} \right)^n_{i,j} \approx v^n_{i,j} \cdot \frac{u^n_{i,j} - u^n_{i-1,j}}{\Delta y}
+\]
+So the full advection term becomes:
+\[
+\text{Adv}^n_{i,j} = u^n_{i,j} \cdot \frac{u^n_{i,j} - u^n_{i,j-1}}{\Delta x} + v^n_{i,j} \cdot \frac{u^n_{i,j} - u^n_{i-1,j}}{\Delta y}
+\]
+Multiply both sides by $\Delta t$ and rearrange:
+\[
+u^{n+1}_{i,j} - \Delta t \cdot \nu \nabla^2 u^{n+1}_{i,j} = u^n_{i,j} - \Delta t \cdot \text{Adv}^n_{i,j}
+\]
+Discretize the Laplacian:
+\[
+\nabla^2 u^{n+1}_{i,j} \approx
+\frac{u^{n+1}_{i+1,j} - 2u^{n+1}_{i,j} + u^{n+1}_{i-1,j}}{\Delta x^2} +
+\frac{u^{n+1}_{i,j+1} - 2u^{n+1}_{i,j} + u^{n+1}_{i,j-1}}{\Delta y^2}
+\]
+Plug into time discretization:
+\[
+u^{n+1}_{i,j} - \Delta t \cdot \nu \left(
+\frac{u^{n+1}_{i+1,j} - 2u^{n+1}_{i,j} + u^{n+1}_{i-1,j}}{\Delta x^2} +
+\frac{u^{n+1}_{i,j+1} - 2u^{n+1}_{i,j} + u^{n+1}_{i,j-1}}{\Delta y^2}
+\right)
+= u^n_{i,j} - \Delta t \cdot \text{Adv}^n_{i,j}
+\]
+Solve for \(u^{n+1}_{i,j}\)
+\begin{align*}
+    \left(1 + 2\Delta t \nu \left( \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} \right) \right) u^{n+1}_{i,j} &=
+    u^n_{i,j} + \Delta t \cdot \left[
+    - u^n_{i,j} \cdot \frac{u^n_{i,j} - u^n_{i,j-1}}{\Delta x}
+    - v^n_{i,j} \cdot \frac{u^n_{i,j} - u^n_{i-1,j}}{\Delta y}
+    \right] \\
+    & + \Delta t \cdot \nu \left(
+    \frac{u^{n+1}_{i+1,j} + u^{n+1}_{i-1,j}}{\Delta x^2} +
+    \frac{u^{n+1}_{i,j+1} + u^{n+1}_{i,j-1}}{\Delta y^2}
+    \right)
+\end{align*}
+which gives us
+\[
+u^{n+1}_{i,j} =
+\frac{
+u^n_{i,j} + \Delta t \left[
+- u^n_{i,j} \cdot \frac{u^n_{i,j} - u^n_{i,j-1}}{\Delta x}
+- v^n_{i,j} \cdot \frac{u^n_{i,j} - u^n_{i-1,j}}{\Delta y}
+\right] +
+\Delta t \cdot \nu \left(
+\frac{u^{n+1}_{i+1,j} + u^{n+1}_{i-1,j}}{\Delta x^2} +
+\frac{u^{n+1}_{i,j+1} + u^{n+1}_{i,j-1}}{\Delta y^2}
+\right)
+}{
+1 + 2 \Delta t \nu \left( \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} \right)
+}
+\]
