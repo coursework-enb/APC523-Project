@@ -19,6 +19,8 @@ compute_time = time.perf_counter() - start_time
 vorticity = solver.compute_vorticity()
 ```
 
+Of course with different solvers, checkout [here](https://github.com/coursework-enb/APC523-Project/blob/main/src/ns2d/__init__.py) everything we have.
+
 Systematically run for both values of $\nu\in\{1\times10^{-3}, 1\times10^{-5}\}$ and get results for both benchmarks.
 Run TGV up to a final time $T = 0.5$ seconds and LDC until a final time $T = 2.5$ seconds.
 
