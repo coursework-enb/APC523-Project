@@ -8,6 +8,7 @@ from .predictor_step import (
     EulerIntegrator,
     PredictorCorrectorIntegrator,
     RK4Integrator,
+    SemiImplicitIntegrator,
 )
 from .rhs_discretization import (
     FiniteDifferenceDiscretizer,
@@ -25,6 +26,7 @@ __all__ = [
     "NavierStokesSolver2D",
     "PredictorCorrectorIntegrator",
     "RK4Integrator",
+    "SemiImplicitIntegrator",
     "SpatialDiscretizationStrategy",
     "TimeIntegratorStrategy",
 ]
