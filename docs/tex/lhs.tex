@@ -1,55 +1,60 @@
 \section{Prediction Step}
 
-The prediction step in a pressure-based Navier-Stokes solver estimates the intermediate velocity field before applying pressure correction. This step advances the momentum equations without enforcing incompressibility.
+The prediction step in a pressure-based Navier-Stokes solver estimates the intermediate velocity field before applying the pressure correction. This step advances the momentum equations without enforcing the incompressibility constraint.
 
 \subsection{Explicit Schemes}
 
-Explicit time integration schemes compute the velocity update using only values from the current time step. For example, the Forward Euler method updates the velocity as:
+Explicit time integration schemes compute the velocity update using only known values from the current time step. For instance, the Forward Euler method updates the velocity as
 \begin{equation}
-\mathbf{u}^{n+1} = \mathbf{u}^n + \Delta t \cdot \left( -\mathbf{u}^n \cdot \nabla \mathbf{u}^n + \nu \nabla^2 \mathbf{u}^n \right)
+\mathbf{u}^{n+1} = \mathbf{u}^n + \Delta t \left( - (\mathbf{u}^n \cdot \nabla) \mathbf{u}^n + \nu \nabla^2 \mathbf{u}^n \right),
 \end{equation}
+where $\mathbf{u} = (u,v)$ is the velocity vector, $\nu$ is the kinematic viscosity, and $\Delta t$ is the time step size.
 
-In the provided code, this is implemented as:
+In the provided code, this update is implemented as:
 \begin{verbatim}
-u\_new\[1:-1, 1:-1] = u\[1:-1, 1:-1] + dt \* dudt1\[1:-1, 1:-1]
-v\_new\[1:-1, 1:-1] = v\[1:-1, 1:-1] + dt \* dvdt1\[1:-1, 1:-1]
+u_new[1:-1, 1:-1] = u[1:-1, 1:-1] + dt * dudt1[1:-1, 1:-1]
+v_new[1:-1, 1:-1] = v[1:-1, 1:-1] + dt * dvdt1[1:-1, 1:-1]
 \end{verbatim}
-Here, \$\texttt{dudt1}\$ and \$\texttt{dvdt1}\$ contain the explicit evaluation of all right-hand side terms at time \$n\$.
+Here, \texttt{dudt1} and \texttt{dvdt1} contain the explicit evaluation of the right-hand side terms (advection and diffusion) at time step $n$.
 
 \subsection{Semi-implicit Schemes}
 
-Semi-implicit methods treat some terms explicitly (advection) and others implicitly (diffusion), improving stability without fully solving a linear system.
+Semi-implicit schemes treat some terms explicitly and others implicitly to improve numerical stability without the full cost of solving a global linear system. Typically, the nonlinear advection terms are treated explicitly, while the linear diffusion terms are treated implicitly.
 
 \subsubsection{Explicit Advection and Implicit Diffusion}
 
-This scheme discretizes:
+This approach discretizes the momentum equation as
 \begin{equation}
-\frac{\mathbf{u}^{n+1} - \mathbf{u}^n}{\Delta t} = - (\mathbf{u} \cdot \nabla \mathbf{u})^n + \nu \nabla^2 \mathbf{u}^{n+1}
+\frac{\mathbf{u}^{n+1} - \mathbf{u}^n}{\Delta t} = - \left( (\mathbf{u} \cdot \nabla) \mathbf{u} \right)^n + \nu \nabla^2 \mathbf{u}^{n+1}.
 \end{equation}
+The diffusion term $\nu \nabla^2 \mathbf{u}^{n+1}$ is treated implicitly, while the advection term is evaluated explicitly at time $n$.
 
-The diffusion term is treated implicitly by approximating \$\nabla^2 \mathbf{u}^{n+1}\$ using neighboring values of \$\mathbf{u}^{n+1}\$. The update formula for \$u\$ becomes:
+For the $u$-component of velocity at grid point $(i,j)$, using a finite difference discretization on a uniform Cartesian grid with spacings $\Delta x$ and $\Delta y$, the update formula reads
 \begin{equation}
 \begin{aligned}
-u
-u
-u
-u
-u
-u
-u
-
-u\_{i,j}^{n+1} = \frac{u\_{i,j}^n + \Delta t \cdot \left\[- u\_{i,j}^n \frac{u\_{i,j}^n - u\_{i,j-1}^n}{\Delta x} - v\_{i,j}^n \frac{u\_{i,j}^n - u\_{i-1,j}^n}{\Delta y} \right] + \\
-\Delta t \cdot \nu \left( \frac{u\_{i+1,j}^{n+1} + u\_{i-1,j}^{n+1}}{\Delta x^2} + \frac{u\_{i,j+1}^{n+1} + u\_{i,j-1}^{n+1}}{\Delta y^2} \right)}{1 + 2 \Delta t \nu \left( \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} \right)}
+u_{i,j}^{n+1} = \frac{
+u_{i,j}^n + \Delta t \left[
+- u_{i,j}^n \frac{u_{i,j}^n - u_{i,j-1}^n}{\Delta x}
+- v_{i,j}^n \frac{u_{i,j}^n - u_{i-1,j}^n}{\Delta y}
+\right] + \Delta t \nu \left(
+\frac{u_{i+1,j}^{n+1} + u_{i-1,j}^{n+1}}{\Delta x^2} + \frac{u_{i,j+1}^{n+1} + u_{i,j-1}^{n+1}}{\Delta y^2}
+\right)
+}{
+1 + 2 \Delta t \nu \left( \frac{1}{\Delta x^2} + \frac{1}{\Delta y^2} \right)
+}.
 \end{aligned}
 \end{equation}
 
-This formulation avoids solving a global matrix system by using a Jacobi-like update. In the code, it is implemented as:
-\begin{verbatim}
-u\_new\[1:-1, 1:-1] = (
-u\[1:-1, 1:-1] + dt \* adv\_u +
-dt \* nu \* ((u\[1:-1, 2:] + u\[1:-1, 0:-2]) / dx**2 +
-(u\[2:, 1:-1] + u\[0:-2, 1:-1]) / dy**2))&#x20;
-/ (1 + 2 \* dt \* nu \* (1/dx**2 + 1/dy**2))
-\end{verbatim}
+This formula corresponds to a Jacobi iteration for the implicit diffusion step, avoiding the need to solve a global linear system explicitly.
 
-This allows larger time steps while remaining efficient and relatively easy to implement.
+In code, this update is implemented as:
+\begin{verbatim}
+u_new[1:-1, 1:-1] = (
+    u[1:-1, 1:-1] + dt * adv_u +
+    dt * nu * ((u[1:-1, 2:] + u[1:-1, 0:-2]) / dx**2 +
+               (u[2:, 1:-1] + u[0:-2, 1:-1]) / dy**2)
+) / (1 + 2 * dt * nu * (1/dx**2 + 1/dy**2))
+\end{verbatim}
+where \texttt{adv\_u} contains the explicit advection terms evaluated at time $n$.
+
+This semi-implicit scheme allows for larger stable time steps compared to fully explicit methods while remaining computationally efficient and relatively straightforward to implement.
