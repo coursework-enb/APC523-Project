@@ -6,10 +6,11 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from numpy import float64, maximum, sum, zeros, zeros_like
+import numpy as np
+from numpy import float64
 from tqdm import tqdm
 
-from .adaptive_time import adapt_time_step, cfl_time_step
+from .adaptive_time import adapt_time_step, cfl_adapt_time_step
 from .benchmarks import (
     initialize_for_benchmark,
     validate_against_benchmark,
@@ -79,9 +80,9 @@ class NavierStokesSolver2D(ABC):
     Y: Grid2D = field(init=False)
 
     def __post_init__(self) -> None:
-        self.u = zeros((self.nx, self.ny), dtype=float64)
-        self.v = zeros((self.nx, self.ny), dtype=float64)
-        self.p = zeros((self.nx, self.ny), dtype=float64)
+        self.u = np.zeros((self.nx, self.ny), dtype=float64)
+        self.v = np.zeros((self.nx, self.ny), dtype=float64)
+        self.p = np.zeros((self.nx, self.ny), dtype=float64)
 
     def __repr__(self) -> str:
         is_abstract = ABC in self.__class__.__bases__
@@ -102,7 +103,9 @@ class NavierStokesSolver2D(ABC):
 
     def _estimate_cfl(self) -> float:
         """Compute the maximum Courant-Friedrichs-Lewy (CFL) number"""
-        cfl: float = maximum(self.u * self.dt / self.dx, self.v * self.dt / self.dy).max()
+        cfl: float = np.maximum(
+            self.u * self.dt / self.dx, self.v * self.dt / self.dy
+        ).max()
         return cfl
 
     def set_time_integrator(self, integrator: TimeIntegratorStrategy) -> None:
@@ -143,7 +146,7 @@ class NavierStokesSolver2D(ABC):
         :return: Kinetic energy value
         """
         cell_area = self.dx * self.dy
-        ke: float = 0.5 * cell_area * sum(self.u**2 + self.v**2)
+        ke: float = 0.5 * cell_area * np.sum(self.u**2 + self.v**2)
         return ke
 
     def compute_vorticity(self, order: int = 2) -> Grid2D:
@@ -210,7 +213,7 @@ class NavierStokesSolver2D(ABC):
         # Don't compute kinetic energy and stream when not needed
         if benchmark == "Taylor-Green Vortex":
             ke_simulated = self.compute_kinetic_energy()
-            stream_func = zeros_like(self.u)
+            stream_func = np.zeros_like(self.u)
         elif benchmark == "Lid-Driven Cavity":
             ke_simulated = 0.0
             stream_func = self.solve_stream_function()
@@ -231,6 +234,21 @@ class NavierStokesSolver2D(ABC):
         # Optional: Add visual for the error at each cell when Taylor-Green Vortex
         return error
 
+    def _cfl_time(self) -> float:
+        """Provides the new time step purely based on CFL"""
+        velocity_magnitude = np.sqrt(self.u**2 + self.v**2)
+        max_velocity = np.max(velocity_magnitude)
+
+        if np.isclose(max_velocity, 0.0):
+            return self.max_dt
+
+        h_min = min(self.dx, self.dy)
+
+        dt: float = self.target_CFL * h_min / max_velocity
+        dt = max(min(dt, self.max_dt), self.min_dt)
+
+        return dt
+
     def integrate(
         self,
         num_steps: int | None = None,
@@ -238,6 +256,7 @@ class NavierStokesSolver2D(ABC):
         num_step_vorticity: int | None = None,
         benchmark: str | None = "Lid-Driven Cavity",
         cfl_based: bool = True,
+        cfl_adapt: bool = False,
     ) -> (
         tuple[list[float], list[float], float]
         | tuple[list[float], list[float], list[float]]
@@ -247,6 +266,8 @@ class NavierStokesSolver2D(ABC):
 
         :param num_steps: Number of time steps to simulate
         """
+        assert not (cfl_based & cfl_adapt), "Make a choice concerning time step update"
+
         if num_steps is None and end_time is None:
             raise ValueError("Needs either num_steps or end_time")
 
@@ -294,8 +315,8 @@ class NavierStokesSolver2D(ABC):
             # If adaptive time stepping is enabled, check if the step is acceptable
             current_cfl = self._estimate_cfl()
             if not self.fixed_dt:
-                if cfl_based:
-                    dt_new, accept = cfl_time_step(
+                if cfl_adapt:
+                    dt_new, accept = cfl_adapt_time_step(
                         current_cfl, self.dt, self.min_dt, self.max_dt, self.target_CFL
                     )
                 else:
@@ -316,6 +337,8 @@ class NavierStokesSolver2D(ABC):
                     self.dt = dt_new
                     continue
                 self.dt = dt_new
+            if cfl_based:
+                self.dt = self._cfl_time()
 
             # Record
             cfl_values.append(current_cfl)

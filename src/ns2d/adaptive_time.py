@@ -40,7 +40,7 @@ def adapt_time_step(
     return dt_new, bool(accept)
 
 
-def cfl_time_step(
+def cfl_adapt_time_step(
     CFL: float,
     dt: float,
     min_dt: float,
