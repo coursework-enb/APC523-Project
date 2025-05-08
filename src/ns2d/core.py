@@ -16,6 +16,7 @@ from .benchmarks import (
     validate_against_benchmark,
 )
 from .boundaries import apply_pressure_bc, apply_velocity_bc
+from .safe_math import calculate_aggr_sq_speeds, calculate_max_velocity_magn
 from .utils import Grid2D
 from .vorticity import finite_difference_vorticity
 
@@ -146,7 +147,8 @@ class NavierStokesSolver2D(ABC):
         :return: Kinetic energy value
         """
         cell_area = self.dx * self.dy
-        ke: float = 0.5 * cell_area * np.sum(self.u**2 + self.v**2)
+        sum_sq = calculate_aggr_sq_speeds(self.u, self.v)
+        ke: float = 0.5 * cell_area * sum_sq
         return ke
 
     def compute_vorticity(self, order: int = 2) -> Grid2D:
@@ -236,10 +238,7 @@ class NavierStokesSolver2D(ABC):
 
     def _cfl_time(self) -> float:
         """Provides the new time step purely based on CFL"""
-        velocity_magnitude = np.sqrt(
-            self.u**2 + self.v**2
-        )  # TODO: overflow issue in square
-        max_velocity = np.max(velocity_magnitude)
+        max_velocity = calculate_max_velocity_magn(self.u, self.v)
 
         if np.isclose(max_velocity, 0.0):
             return self.max_dt
