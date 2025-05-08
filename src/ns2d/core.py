@@ -4,14 +4,21 @@
 # - Define a proper default initialization (when no benchmark) + manual init
 # - For central differences make the choice of order more flexible like in ns2d/vorticity.py
 
+# Diagnosis using
+# - JacobiSolver with SemiImplicitIntegrator and FiniteDifferenceDiscretizer
+# - over 10000 steps
+
 # We get an error for fixed dt, cfl-based dt, adaptive dt with either options
-#   - fixed dt = 0.001 leads to pre-Poisson failure
+#   - fixed dt = 0.01, 0.001, 1e-05 or 1e-08 leads to pre-Poisson failure
+#   - fixed cfl-based dt with target = 0.2 or 0.01 leads to failure
 #   - adaptive dt with cfl_adapt leads to pre-Poisson failure
 #   - adaptive dt without cfl_adapt leads to pre-Poisson failure
 
-# We do NOT get an error for adaptive dt without cfl-adaptive strategy
-# but self.dt is NOT updated (in comment)! hence when it does not apply to corrector step
-#   - adaptive dt with cfl-adaptation leads to pre-Poisson failure
+# If now self.dt is NOT updated (in comment), hence when it does not apply to corrector step we get:
+#   - adaptive dt without cfl-adaptive strategy works very well
+#   - adaptive dt with cfl-adaptation and default target of 0.2 leads to pre-Poisson failure
+#   - adaptive dt with cfl-adaptation and target of 0.01 runs without NaNs and provides a good solution
+#   - fixed dt with cfl-based (target 0.01) dt runs without NaNs but does not give as good of a solution
 
 # Note: all failures are within the first 100 steps
 
@@ -422,9 +429,7 @@ class NavierStokesSolver2D(ABC):
                     continue
                 current_dt = dt_new
             elif cfl_based:
-                # DEBUG: Produces NaN
                 current_dt = self._cfl_time()
-                # raise NotImplementedError("CFL-based time step needs to be debugged")
             # Else keep current_dt
 
             # Record
