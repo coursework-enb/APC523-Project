@@ -236,7 +236,9 @@ class NavierStokesSolver2D(ABC):
 
     def _cfl_time(self) -> float:
         """Provides the new time step purely based on CFL"""
-        velocity_magnitude = np.sqrt(self.u**2 + self.v**2)  # TODO: overflow issue in square
+        velocity_magnitude = np.sqrt(
+            self.u**2 + self.v**2
+        )  # TODO: overflow issue in square
         max_velocity = np.max(velocity_magnitude)
 
         if np.isclose(max_velocity, 0.0):
@@ -256,7 +258,7 @@ class NavierStokesSolver2D(ABC):
         num_step_vorticity: int | None = None,
         benchmark: str | None = "Lid-Driven Cavity",
         cfl_based: bool = False,
-        cfl_adapt: bool = True,
+        cfl_adapt: bool = False,
     ) -> (
         tuple[list[float], list[float], float]
         # | tuple[list[float], list[float], list[float]]
@@ -276,6 +278,7 @@ class NavierStokesSolver2D(ABC):
 
         current_time = 0.0
         step = 0
+        current_dt = self.dt
 
         max_steps: int | float = num_steps if num_steps is not None else float("inf")
         end_time = end_time if end_time is not None else float("inf")
@@ -292,6 +295,7 @@ class NavierStokesSolver2D(ABC):
         while current_time < end_time and step < max_steps:
             # Ensure we don't overshoot the end time
             self.dt = min(self.dt, end_time - current_time)
+            current_dt = min(current_dt, end_time - current_time)
 
             u_prev = self.u.copy()
             v_prev = self.v.copy()
@@ -301,7 +305,7 @@ class NavierStokesSolver2D(ABC):
                 self.u,
                 self.v,
                 self.p,
-                self.dt,
+                current_dt,
                 self.discrete_navier_stokes,
                 self.dx,
                 self.dy,
@@ -318,7 +322,7 @@ class NavierStokesSolver2D(ABC):
             if not self.fixed_dt:
                 if cfl_adapt:
                     dt_new, accept = cfl_adapt_time_step(
-                        current_cfl, self.dt, self.min_dt, self.max_dt, self.target_CFL
+                        current_cfl, current_dt, self.min_dt, self.max_dt, self.target_CFL
                     )
                 else:
                     dt_new, accept = adapt_time_step(
@@ -326,7 +330,7 @@ class NavierStokesSolver2D(ABC):
                         v_prev,
                         self.u,
                         self.v,
-                        self.dt,
+                        current_dt,
                         self.min_dt,
                         self.max_dt,
                         self.tol,
@@ -335,11 +339,11 @@ class NavierStokesSolver2D(ABC):
                     # If strong adaptive is enabled and step is rejected, revert and retry
                     self.u = u_prev
                     self.v = v_prev
-                    self.dt = dt_new
+                    current_dt = dt_new
                     continue
-                self.dt = dt_new
+                current_dt = dt_new
             if cfl_based:
-                self.dt = self._cfl_time()
+                current_dt = self._cfl_time()
 
             # Record
             cfl_values.append(current_cfl)
@@ -349,7 +353,7 @@ class NavierStokesSolver2D(ABC):
             #     errors.append(error_tgv)
 
             # Advance time and step counter
-            current_time += self.dt
+            current_time += current_dt
             step += 1
 
             progress_bar.update(1)
