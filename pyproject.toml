@@ -21,6 +21,8 @@ dependencies = [
     "numba>=0.59",
     "typing-extensions>=4.0",
     "pyamg>=4.3",
+    "scipy>=1.10",
+    "tqdm>=4.60"
 ]
 
 [project.optional-dependencies]

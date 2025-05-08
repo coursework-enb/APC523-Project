@@ -2,7 +2,7 @@
 This script implements two cases of boundary conditions, relevant to our benchmarks.
 We use numba so that functions can be called from another numba function (or not).
 
-TODO: Bring other BC designs in vorticity, stream, etc. from core.py to centralize BC choices.
+TODO: Bring other BC designs in vorticity, stream, etc. from core.py here to centralize BC choices.
 """
 
 from numba import njit
