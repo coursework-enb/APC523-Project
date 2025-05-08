@@ -404,8 +404,8 @@ class NavierStokesSolver2D(ABC):
 
             # Check solution if "fail-fast" mode
             if failfast and step % 100 == 0:
-                fail, message = self._check_current_sol()
-                if fail:
+                is_valid, message = self._check_current_sol()
+                if not is_valid:
                     raise RuntimeError(
                         f"Validation failed at step {step} with the following error(s):\n"
                         + message
