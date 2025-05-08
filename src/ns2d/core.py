@@ -265,7 +265,8 @@ class NavierStokesSolver2D(ABC):
     ):
         """Run the simulation for a specified number of time steps.
 
-        :param num_steps: Number of time steps to simulate
+        :params: Number of time steps or integration time, dt update strategy and benchmark
+        :return: Serializable time values, CFL values and error
         """
         if cfl_based & cfl_adapt:
             raise ValueError("Make a choice concerning time step update")
@@ -293,7 +294,6 @@ class NavierStokesSolver2D(ABC):
 
         while current_time < end_time and step < max_steps:
             # Ensure we don't overshoot the end time
-            self.dt = min(self.dt, end_time - current_time)
             current_dt = min(current_dt, end_time - current_time)
 
             u_prev = self.u.copy()
@@ -313,6 +313,7 @@ class NavierStokesSolver2D(ABC):
             )
 
             # Enforce incompressibility
+            # self.dt = current_dt   # issue is exactly here, uncommenting it leads to failure
             self.solve_poisson()
             self.update_velocity()
 
