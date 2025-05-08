@@ -409,6 +409,7 @@ class NavierStokesSolver2D(ABC):
                     raise RuntimeError(
                         f"Validation failed at step {step} with the following error(s):\n"
                         + message
+                        + f"\nwith current dt={current_dt} and CFL={current_cfl}"
                     )
 
             # Advance time and step counter
