@@ -310,7 +310,7 @@ class NavierStokesSolver2D(ABC):
         benchmark: str | None = "Lid-Driven Cavity",
         cfl_based: bool = True,
         cfl_adapt: bool = False,
-    ) -> tuple[float, list[float], float] | tuple[float, list[float]]:
+    ) -> tuple[list[float], list[float], float] | tuple[list[float], list[float]]:
         """Run the simulation for a specified number of time steps.
 
         :params: Number of time steps or integration time, dt update strategy and benchmark
@@ -423,12 +423,11 @@ class NavierStokesSolver2D(ABC):
 
         progress_bar.close()
 
-        average_dt: float = sum(time_values) / len(time_values)
         if benchmark == "Lid-Driven Cavity":
             error_ldc: float = self.validate(benchmark, end_time, verbose=True)
-            return average_dt, cfl_values, error_ldc
+            return time_values, cfl_values, error_ldc
         elif benchmark == "Taylor-Green Vortex":
             error_tgv: float = self.validate(benchmark, current_time)
-            return average_dt, cfl_values, error_tgv
+            return time_values, cfl_values, error_tgv
         else:
-            return average_dt, cfl_values
+            return time_values, cfl_values
