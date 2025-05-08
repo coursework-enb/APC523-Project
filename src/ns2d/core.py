@@ -6,12 +6,12 @@
 
 # Diagnosis using
 # - JacobiSolver with SemiImplicitIntegrator and FiniteDifferenceDiscretizer
-# - over 10000 steps
+# - TGV over 10000 steps
 
 # We get an error for fixed dt, cfl-based dt, adaptive dt with either options
 #   - fixed dt = 0.01, 0.001, 1e-05 or 1e-08 leads to pre-Poisson failure
 #   - fixed cfl-based dt with target = 0.2 or 0.01 leads to failure
-#   - adaptive dt with cfl_adapt leads to pre-Poisson failure
+#   - adaptive dt with cfl_adapt (both default and 0.01 target) leads to pre-Poisson failure
 #   - adaptive dt without cfl_adapt leads to pre-Poisson failure
 
 # If now self.dt is NOT updated (in comment), hence when it does not apply to corrector step we get:
@@ -20,7 +20,9 @@
 #   - adaptive dt with cfl-adaptation and target of 0.01 runs without NaNs and provides a good solution
 #   - fixed dt with cfl-based (target 0.01) dt runs without NaNs but does not give as good of a solution
 
-# Note: all failures are within the first 100 steps
+# Note: all failures are within the first 100 steps and we seem to get the same with
+# GaussSeidelSolver, SemiImplicitIntegrator, FiniteDifferenceUpwindDiscretizer
+
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -395,7 +397,6 @@ class NavierStokesSolver2D(ABC):
             )
 
             # Enforce incompressibility
-            # self.dt = current_dt   # issue is exactly here, uncommenting it leads to failure
             self.solve_poisson()
             self.update_velocity()
 
@@ -448,7 +449,7 @@ class NavierStokesSolver2D(ABC):
 
             progress_bar.update(1)
 
-            # self.dt = current_dt  # Not working as well!
+            # self.dt = current_dt  # Issue is exactly here, uncommenting it leads to systematic failure!
             # print(f"Currend dt: {current_dt} / self.dt: {self.dt} / CFL {current_cfl}")
 
         progress_bar.close()
