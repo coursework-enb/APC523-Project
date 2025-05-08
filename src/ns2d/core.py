@@ -78,6 +78,7 @@ class NavierStokesSolver2D(ABC):
     tol: float = 1e-1  # default: 10% rule
     target_CFL: float = 0.2
     strong_adaptive: bool = False
+    failfast: bool = True
     u: Grid2D = field(init=False)
     v: Grid2D = field(init=False)
     p: Grid2D = field(init=False)
@@ -302,11 +303,29 @@ class NavierStokesSolver2D(ABC):
         else:
             return True, "Solution is valid."
 
+    def _fail_fast(
+        self,
+        step: int | None,
+        prepend_message: str = "Validation failed with the following error(s):",
+        append_message: str = "",
+    ) -> None:
+        if self.failfast and (step is None or step % 100 == 0):
+            is_valid, message = self._check_current_sol()
+            if not is_valid:
+                raise RuntimeError(
+                    prepend_message
+                    + "\n"
+                    + message
+                    + "\n"
+                    + f"with dt={self.dt} and CFL={self._estimate_cfl()}"
+                    + append_message
+                )
+        return None
+
     def integrate(
         self,
         num_steps: int | None = None,
         end_time: float | None = 2.5,
-        failfast: bool = True,
         benchmark: str | None = "Lid-Driven Cavity",
         cfl_based: bool = True,
         cfl_adapt: bool = False,
@@ -358,6 +377,12 @@ class NavierStokesSolver2D(ABC):
                 self.bc_case,
             )
 
+            self._fail_fast(
+                step,
+                prepend_message=f"Validation failed at step {step} pre-Poisson with the following error(s):",
+                append_message=f"and current_dt={current_dt}",
+            )
+
             # Enforce incompressibility
             # self.dt = current_dt   # issue is exactly here, uncommenting it leads to failure
             self.solve_poisson()
@@ -371,9 +396,9 @@ class NavierStokesSolver2D(ABC):
                     dt_new, accept = cfl_adapt_time_step(
                         current_cfl, current_dt, self.min_dt, self.max_dt, self.target_CFL
                     )
-                    raise NotImplementedError(
-                        "CFL-adaptive time step needs to be debugged"
-                    )
+                    # raise NotImplementedError(
+                    #     "CFL-adaptive time step needs to be debugged"
+                    # )
                 else:
                     dt_new, accept = adapt_time_step(
                         u_prev,
@@ -402,15 +427,11 @@ class NavierStokesSolver2D(ABC):
             cfl_values.append(current_cfl)
             time_values.append(current_time)
 
-            # Check solution if "fail-fast" mode
-            if failfast and step % 100 == 0:
-                is_valid, message = self._check_current_sol()
-                if not is_valid:
-                    raise RuntimeError(
-                        f"Validation failed at step {step} with the following error(s):\n"
-                        + message
-                        + f"\nwith current dt={current_dt} and CFL={current_cfl}"
-                    )
+            self._fail_fast(
+                step,
+                prepend_message=f"Validation failed at step {step} post-Poisson with the following error(s):",
+                append_message=f"and current_dt={current_dt}",
+            )
 
             # Advance time and step counter
             current_time += current_dt
