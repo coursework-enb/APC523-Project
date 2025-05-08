@@ -14,7 +14,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 authors = [
     {name = "Esteban Nocet-Binois", email = "en4624@princeton.edu"},
-    {name = "Kristin Paragian", email = "kparagian@princeton.edu"}
+    {name = "Marie Joe Sawma", email = "ms6730@princeton.edu"}
 ]
 dependencies = [
     "numpy>=1.26",

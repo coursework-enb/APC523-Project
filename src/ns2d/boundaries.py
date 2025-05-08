@@ -1,8 +1,16 @@
+"""
+This script implements two cases of boundary conditions, relevant to our benchmarks.
+We use numba so that functions can be called from another numba function (or not).
+
+TODO: Bring other BC designs in vorticity, stream, etc. from core.py to centralize BC choices.
+"""
+
 from numba import njit
 
 from .utils import Grid2D
 
 
+@njit()
 def apply_velocity_bc(u: Grid2D, v: Grid2D, bc_case: int) -> tuple[Grid2D, Grid2D]:
     """
     Apply boundary conditions to the velocity fields based on the specified case.
@@ -54,6 +62,7 @@ def apply_velocity_bc(u: Grid2D, v: Grid2D, bc_case: int) -> tuple[Grid2D, Grid2
     return u, v
 
 
+@njit()
 def apply_pressure_bc(p: Grid2D, bc_case: int) -> Grid2D:
     """
     Apply boundary conditions to the pressure field based on the specified case.

@@ -1,3 +1,5 @@
+from typing import cast
+
 import numpy as np
 from numba import njit, prange
 
@@ -130,7 +132,7 @@ class EulerIntegrator(TimeIntegratorStrategy):
         # Boundaries
         result = apply_velocity_bc(u_new, v_new, bc_case)
 
-        return result
+        return cast(tuple[Grid2D, Grid2D], result)
 
 
 class RK4Integrator(TimeIntegratorStrategy):
@@ -186,7 +188,7 @@ class RK4Integrator(TimeIntegratorStrategy):
         # Boundaries
         result = apply_velocity_bc(u_new, v_new, bc_case)
 
-        return result
+        return cast(tuple[Grid2D, Grid2D], result)
 
 
 class PredictorCorrectorIntegrator(TimeIntegratorStrategy):
@@ -235,7 +237,7 @@ class PredictorCorrectorIntegrator(TimeIntegratorStrategy):
 
         result = apply_velocity_bc(u_new, v_new, bc_case)
 
-        return result
+        return cast(tuple[Grid2D, Grid2D], result)
 
 
 class SemiImplicitIntegrator(TimeIntegratorStrategy):
@@ -275,11 +277,9 @@ class SemiImplicitIntegrator(TimeIntegratorStrategy):
         u_star = u + dt * du_dt_explicit
         v_star = v + dt * dv_dt_explicit
 
-        u_star, v_star = apply_velocity_bc(u_star, v_star, bc_case)
-
         u_new = jacobi_diffusion_solver(u_star, nu, dt, dx, dy)
         v_new = jacobi_diffusion_solver(v_star, nu, dt, dx, dy)
 
         result = apply_velocity_bc(u_new, v_new, bc_case)
 
-        return result
+        return cast(tuple[Grid2D, Grid2D], result)
