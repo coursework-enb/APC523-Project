@@ -2,6 +2,11 @@
 # - Make sure that boundary conditions are enforced consistently and coherently
 # - Add external forces
 # - Define a proper default initialization (when no benchmark) + manual init
+# - For central differences make the choice of order more flexible like in ns2d/vorticity.py
+
+# We get an error for fixed dt, cfl-based dt, adaptive dt with either options
+# We do not get an error for adaptive dt without cfl-adaptive strategy (with cfl it fails as well)
+# but self.dt is not updated! hence when it does not apply to corrector step
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -250,19 +255,62 @@ class NavierStokesSolver2D(ABC):
 
         return dt
 
+    def _check_current_sol(self, hard: bool = False) -> tuple[bool, str]:
+        """Checks solution's validity at runtime"""
+        error = False
+        messages = []
+
+        if np.any(np.isnan(self.u)):
+            messages.append("  - u contains NaN values")
+            error = True
+        if np.any(np.isinf(self.u)):
+            messages.append("  - u contains Inf values")
+            error = True
+        if np.any(np.isnan(self.v)):
+            messages.append("  - v contains NaN values")
+            error = True
+        if np.any(np.isinf(self.v)):
+            messages.append("  - v contains Inf values")
+            error = True
+        if np.any(np.isnan(self.p)):
+            messages.append("  - p contains NaN values")
+            error = True
+        if np.any(np.isinf(self.p)):
+            messages.append("  - p contains Inf values")
+            error = True
+
+        if hard:
+            ke = self.compute_kinetic_energy()
+            stream = self.solve_stream_function()
+
+            if np.isnan(ke):
+                messages.append("  - kinetic energy is NaN")
+                error = True
+            if np.isinf(ke):
+                messages.append("  - kinetic energy is Inf")
+                error = True
+            if np.any(np.isnan(stream)):
+                messages.append("  - stream function contains NaN values")
+                error = True
+            if np.any(np.isinf(stream)):
+                messages.append("  - stream function contains Inf values")
+                error = True
+
+        if error:
+            error_message = "\n".join(messages)
+            return False, error_message
+        else:
+            return True, "Solution is valid."
+
     def integrate(
         self,
         num_steps: int | None = None,
         end_time: float | None = 2.5,
-        num_step_vorticity: int | None = None,
+        failfast: bool = True,
         benchmark: str | None = "Lid-Driven Cavity",
-        cfl_based: bool = False,
+        cfl_based: bool = True,
         cfl_adapt: bool = False,
-    ) -> (
-        tuple[list[float], list[float], float]
-        # | tuple[list[float], list[float], list[float]]
-        | tuple[list[float], list[float]]
-    ):
+    ) -> tuple[float, list[float], float] | tuple[float, list[float]]:
         """Run the simulation for a specified number of time steps.
 
         :params: Number of time steps or integration time, dt update strategy and benchmark
@@ -285,8 +333,6 @@ class NavierStokesSolver2D(ABC):
 
         cfl_values = []
         time_values = []
-        # if benchmark == "Taylor-Green Vortex":
-        #     errors = []
 
         # If num_steps is provided, use it as the total; otherwise, estimate based on end_time and dt
         total_steps = num_steps if num_steps is not None else int(end_time / self.dt) + 1
@@ -321,8 +367,12 @@ class NavierStokesSolver2D(ABC):
             current_cfl = self._estimate_cfl()
             if not self.fixed_dt:
                 if cfl_adapt:
+                    # DEBUG: Produces NaN
                     dt_new, accept = cfl_adapt_time_step(
                         current_cfl, current_dt, self.min_dt, self.max_dt, self.target_CFL
+                    )
+                    raise NotImplementedError(
+                        "CFL-adaptive time step needs to be debugged"
                     )
                 else:
                     dt_new, accept = adapt_time_step(
@@ -342,15 +392,24 @@ class NavierStokesSolver2D(ABC):
                     current_dt = dt_new
                     continue
                 current_dt = dt_new
-            if cfl_based:
+            elif cfl_based:
+                # DEBUG: Produces NaN
                 current_dt = self._cfl_time()
+                raise NotImplementedError("CFL-based time step needs to be debugged")
+            # Else keep current_dt
 
             # Record
             cfl_values.append(current_cfl)
             time_values.append(current_time)
-            # if benchmark == "Taylor-Green Vortex":
-            #     error_tgv: float = self.validate(benchmark, current_time)
-            #     errors.append(error_tgv)
+
+            # Check solution if "fail-fast" mode
+            if failfast and step % 100 == 0:
+                fail, message = self._check_current_sol()
+                if fail:
+                    raise RuntimeError(
+                        f"Validation failed at step {step} with the following error(s):\n"
+                        + message
+                    )
 
             # Advance time and step counter
             current_time += current_dt
@@ -358,21 +417,17 @@ class NavierStokesSolver2D(ABC):
 
             progress_bar.update(1)
 
-            # Optional: Compute vorticity at intervals
-            if (
-                num_step_vorticity is not None
-                and num_step_vorticity != 0
-                and step % num_step_vorticity == 0
-            ):
-                _ = self.compute_vorticity()
+            # self.dt = current_dt  # Not working as well!
+            # print(f"Currend dt: {current_dt} / self.dt: {self.dt} / CFL {current_cfl}")
 
         progress_bar.close()
 
+        average_dt: float = sum(time_values) / len(time_values)
         if benchmark == "Lid-Driven Cavity":
             error_ldc: float = self.validate(benchmark, end_time, verbose=True)
-            return time_values, cfl_values, error_ldc
+            return average_dt, cfl_values, error_ldc
         elif benchmark == "Taylor-Green Vortex":
             error_tgv: float = self.validate(benchmark, current_time)
-            return time_values, cfl_values, error_tgv
+            return average_dt, cfl_values, error_tgv
         else:
-            return time_values, cfl_values
+            return average_dt, cfl_values
