@@ -9,7 +9,7 @@ from .utils import Grid2D
 
 @njit(parallel=True)
 def euler_step(
-    u: Grid2D, v: Grid2D, du_dt: Grid2D, dv_dt: Grid2D, dt: float, bc_case: int
+    u: Grid2D, v: Grid2D, du_dt: Grid2D, dv_dt: Grid2D, dt: float
 ) -> tuple[Grid2D, Grid2D]:
     """
     Perform a forward Euler time step for velocity fields.
@@ -41,7 +41,6 @@ def rk4_step(
     k4_u: Grid2D,
     k4_v: Grid2D,
     dt: float,
-    bc_case: int,
 ) -> tuple[Grid2D, Grid2D]:
     """
     Perform a fourth-order Runge-Kutta (RK4) time step for velocity fields.
@@ -65,43 +64,35 @@ def rk4_step(
 
 
 @njit(parallel=True)
-def semi_implicit_step(
-    u: Grid2D,
-    v: Grid2D,
-    adv_u: Grid2D,
-    adv_v: Grid2D,
-    dt: float,
-    nu: float,
-    dx: float,
-    dy: float,
-    bc_case: int,
-) -> tuple[Grid2D, Grid2D]:
+def jacobi_diffusion_solver(
+    velocity: Grid2D, nu: float, dt: float, dx: float, dy: float, max_iter: int = 20
+) -> Grid2D:
     """
-    Perform a semi-implicit time step for velocity fields, treating advection explicitly
-    and diffusion implicitly.
+    Jacobi solver for implicit diffusion terms.
     Numba-optimized implementation.
     """
-    nx, ny = u.shape
-    u_new = np.zeros_like(u)
-    v_new = np.zeros_like(v)
-    denom = 1.0 + 2.0 * dt * nu * (1.0 / dx**2 + 1.0 / dy**2)
+    nx, ny = velocity.shape
+    velocity_new = velocity.copy()
+    alpha = nu * dt
+    dx2 = dx**2
+    dy2 = dy**2
+    denominator = 1 + 2 * alpha * (1 / dx2 + 1 / dy2)
 
-    # Interior points
-    for i in prange(1, nx - 1):
-        for j in range(1, ny - 1):
-            # Implicit diffusion for u
-            diff_u = nu * (
-                (u[i, j + 1] + u[i, j - 1]) / dx**2 + (u[i + 1, j] + u[i - 1, j]) / dy**2
-            )
-            u_new[i, j] = (u[i, j] + dt * adv_u[i, j] + dt * diff_u) / denom
+    for _ in range(max_iter):
+        velocity_old = velocity_new.copy()
 
-            # Implicit diffusion for v
-            diff_v = nu * (
-                (v[i, j + 1] + v[i, j - 1]) / dx**2 + (v[i + 1, j] + v[i - 1, j]) / dy**2
-            )
-            v_new[i, j] = (v[i, j] + dt * adv_v[i, j] + dt * diff_v) / denom
+        # Interior points
+        for i in prange(1, nx - 1):
+            for j in range(1, ny - 1):
+                # Using central differences for the diffusion operator
+                diffusion_term = (
+                    velocity_old[i + 1, j] + velocity_old[i - 1, j]
+                ) / dy2 + (velocity_old[i, j + 1] + velocity_old[i, j - 1]) / dx2
+                velocity_new[i, j] = (
+                    velocity[i, j] + alpha * diffusion_term
+                ) / denominator
 
-    return u_new, v_new
+    return velocity_new
 
 
 class EulerIntegrator(TimeIntegratorStrategy):
@@ -134,7 +125,7 @@ class EulerIntegrator(TimeIntegratorStrategy):
             tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
         """
         du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu, bc_case)
-        u_new, v_new = euler_step(u, v, du_dt, dv_dt, dt, bc_case)
+        u_new, v_new = euler_step(u, v, du_dt, dv_dt, dt)
 
         # Boundaries
         result = apply_velocity_bc(u_new, v_new, bc_case)
@@ -189,10 +180,8 @@ class RK4Integrator(TimeIntegratorStrategy):
         # Stage 4
         k4_u, k4_v = method(u3, v3, p_prev, dx, dy, nu, bc_case)
 
-        # Final update
-        u_new, v_new = rk4_step(
-            u, v, k1_u, k1_v, k2_u, k2_v, k3_u, k3_v, k4_u, k4_v, dt, bc_case
-        )
+        # Final update (interior points)
+        u_new, v_new = rk4_step(u, v, k1_u, k1_v, k2_u, k2_v, k3_u, k3_v, k4_u, k4_v, dt)
 
         # Boundaries
         result = apply_velocity_bc(u_new, v_new, bc_case)
@@ -263,27 +252,34 @@ class SemiImplicitIntegrator(TimeIntegratorStrategy):
         bc_case: int,
     ) -> tuple[Grid2D, Grid2D]:
         """
-        Advance velocity fields in time using a semi-implicit method without pressure gradient.
-        Advection terms are treated explicitly, while diffusion terms are treated implicitly
-        to relax time step restrictions due to viscosity.
+        Advance velocity fields using semi-implicit scheme:
+        - Explicit treatment of advection/pressure terms
+        - Jacobi-iterated implicit treatment of diffusion
 
         Args:
-            u (Grid2D): Current x-velocity field.
-            v (Grid2D): Current y-velocity field.
-            p_prev (Grid2D): Previous pressure field (unused in predictor step).
-            dt (float): Time step size.
-            method (SpatialDiscretizationStrategy): Spatial discretization method.
-            dx (float): Grid spacing in x-direction.
-            dy (float): Grid spacing in y-direction.
-            nu (float): Kinematic viscosity.
+            u: Current x-velocity field
+            v: Current y-velocity field
+            p_prev: Previous pressure field
+            dt: Time step size
+            method: Spatial discretization strategy
+            dx: Grid spacing in x-direction
+            dy: Grid spacing in y-direction
+            nu: Kinematic viscosity
+            bc_case: Boundary condition case identifier
 
         Returns:
-            tuple[Grid2D, Grid2D]: Intermediate velocity fields (u, v).
+            Updated velocity fields (u, v) after time step
         """
-        du_dt, dv_dt = method(u, v, p_prev, dx, dy, nu, bc_case)
-        u_new, v_new = semi_implicit_step(u, v, du_dt, dv_dt, dt, nu, dx, dy, bc_case)
+        du_dt_explicit, dv_dt_explicit = method(u, v, p_prev, dx, dy, nu, bc_case)
 
-        # Boundaries
+        u_star = u + dt * du_dt_explicit
+        v_star = v + dt * dv_dt_explicit
+
+        u_star, v_star = apply_velocity_bc(u_star, v_star, bc_case)
+
+        u_new = jacobi_diffusion_solver(u_star, nu, dt, dx, dy)
+        v_new = jacobi_diffusion_solver(v_star, nu, dt, dx, dy)
+
         result = apply_velocity_bc(u_new, v_new, bc_case)
 
         return result
