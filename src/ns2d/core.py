@@ -5,8 +5,15 @@
 # - For central differences make the choice of order more flexible like in ns2d/vorticity.py
 
 # We get an error for fixed dt, cfl-based dt, adaptive dt with either options
-# We do not get an error for adaptive dt without cfl-adaptive strategy (with cfl it fails as well)
-# but self.dt is not updated! hence when it does not apply to corrector step
+#   - fixed dt = 0.001 leads to pre-Poisson failure
+#   - adaptive dt with cfl_adapt leads to pre-Poisson failure
+#   - adaptive dt without cfl_adapt leads to pre-Poisson failure
+
+# We do NOT get an error for adaptive dt without cfl-adaptive strategy
+# but self.dt is NOT updated (in comment)! hence when it does not apply to corrector step
+#   - adaptive dt with cfl-adaptation leads to pre-Poisson failure
+
+# Note: all failures are within the first 100 steps
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -335,9 +342,6 @@ class NavierStokesSolver2D(ABC):
         :params: Number of time steps or integration time, dt update strategy and benchmark
         :return: Serializable time values, CFL values and error
         """
-        if cfl_based & cfl_adapt:
-            raise ValueError("Make a choice concerning time step update")
-
         if num_steps is None and end_time is None:
             raise ValueError("Needs either num_steps or end_time")
 
@@ -380,7 +384,7 @@ class NavierStokesSolver2D(ABC):
             self._fail_fast(
                 step,
                 prepend_message=f"Validation failed at step {step} pre-Poisson with the following error(s):",
-                append_message=f"and current_dt={current_dt}",
+                append_message=f" and current_dt={current_dt}",
             )
 
             # Enforce incompressibility
@@ -420,7 +424,7 @@ class NavierStokesSolver2D(ABC):
             elif cfl_based:
                 # DEBUG: Produces NaN
                 current_dt = self._cfl_time()
-                raise NotImplementedError("CFL-based time step needs to be debugged")
+                # raise NotImplementedError("CFL-based time step needs to be debugged")
             # Else keep current_dt
 
             # Record
@@ -430,7 +434,7 @@ class NavierStokesSolver2D(ABC):
             self._fail_fast(
                 step,
                 prepend_message=f"Validation failed at step {step} post-Poisson with the following error(s):",
-                append_message=f"and current_dt={current_dt}",
+                append_message=f" and current_dt={current_dt}",
             )
 
             # Advance time and step counter
