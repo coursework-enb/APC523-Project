@@ -18,8 +18,7 @@ from ns2d import (
 
 BENCHMARK = "Taylor-Green Vortex"
 N_STEPS = 10000
-FIXED_DT = True
-CFL_BASED = True
+FIXED_DT = False
 NX, NY = 41, 41
 DX, DY = 2.0 / (NX - 1), 2.0 / (NY - 1)
 
@@ -54,7 +53,6 @@ for current_ns_discretizer, current_integrator, current_nu in all_combinations:
             num_steps=N_STEPS,
             end_time=None,
             benchmark=BENCHMARK,
-            cfl_based=CFL_BASED,
         )
         compute_time = time.perf_counter() - start_time
 
