@@ -3,7 +3,7 @@ import itertools
 import json
 
 from numba import set_num_threads
-set_num_threads(15)
+set_num_threads(28)
 
 from ns2d import (
     BaseProjectionSolver,
