@@ -78,5 +78,5 @@ for current_ns_discretizer, current_integrator, current_nu in all_combinations:
             'compute_time': None
         })
 
-with open('results_exp1.json', 'w') as f:
+with open('results_exp3.json', 'w') as f:
     json.dump(results, f, indent=4)
