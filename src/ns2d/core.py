@@ -424,7 +424,7 @@ class NavierStokesSolver2D(ABC):
             error_ldc: float = self.validate(benchmark, end_time, verbose=True)
             return time_values, cfl_values, error_ldc
         elif benchmark == "Taylor-Green Vortex":
-            error_tgv: float = self.validate(benchmark, current_time)
+            error_tgv: float = self.validate(benchmark, current_time, verbose=True)
             return time_values, cfl_values, error_tgv
         else:
             return time_values, cfl_values
