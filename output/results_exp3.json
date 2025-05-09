@@ -1,0 +1,194 @@
+[
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceDiscretizer, integrator=EulerIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceDiscretizer",
+        "integrator": "EulerIntegrator",
+        "nu": 0.001,
+        "compute_time": 39.3122650408186,
+        "error": 0.0008200443870336471
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceDiscretizer, integrator=EulerIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceDiscretizer",
+        "integrator": "EulerIntegrator",
+        "nu": 1e-05,
+        "compute_time": 10.57257573818788,
+        "error": 0.0010106597368133574
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceDiscretizer",
+        "integrator": "PredictorCorrectorIntegrator",
+        "nu": 0.001,
+        "compute_time": 27.463289280887693,
+        "error": 0.0008069553527596529
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceDiscretizer",
+        "integrator": "PredictorCorrectorIntegrator",
+        "nu": 1e-05,
+        "compute_time": 10.449479887727648,
+        "error": 0.0009975447976386942
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceDiscretizer, integrator=RK4Integrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceDiscretizer",
+        "integrator": "RK4Integrator",
+        "nu": 0.001,
+        "compute_time": 12.593954974319786,
+        "error": 0.0008069624604172265
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceDiscretizer, integrator=RK4Integrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceDiscretizer",
+        "integrator": "RK4Integrator",
+        "nu": 1e-05,
+        "compute_time": 11.312131888698786,
+        "error": 0.0009975409515223799
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceDiscretizer, integrator=SemiImplicitIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceDiscretizer",
+        "integrator": "SemiImplicitIntegrator",
+        "nu": 0.001,
+        "compute_time": 18.887453380040824,
+        "error": 0.00045251416169178604
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceDiscretizer, integrator=SemiImplicitIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceDiscretizer",
+        "integrator": "SemiImplicitIntegrator",
+        "nu": 1e-05,
+        "compute_time": 16.36190301179886,
+        "error": 0.001006979142949893
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceUpwindDiscretizer, integrator=EulerIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceUpwindDiscretizer",
+        "integrator": "EulerIntegrator",
+        "nu": 0.001,
+        "compute_time": 75.10986232897267,
+        "error": 0.0033572635949690177
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceUpwindDiscretizer, integrator=EulerIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceUpwindDiscretizer",
+        "integrator": "EulerIntegrator",
+        "nu": 1e-05,
+        "compute_time": 9.824264882598072,
+        "error": 0.0031687262904409597
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceUpwindDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceUpwindDiscretizer",
+        "integrator": "PredictorCorrectorIntegrator",
+        "nu": 0.001,
+        "compute_time": 10.297499828971922,
+        "error": 0.0033433972532650458
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceUpwindDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceUpwindDiscretizer",
+        "integrator": "PredictorCorrectorIntegrator",
+        "nu": 1e-05,
+        "compute_time": 10.279963592998683,
+        "error": 0.0031564052005785825
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceUpwindDiscretizer, integrator=RK4Integrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceUpwindDiscretizer",
+        "integrator": "RK4Integrator",
+        "nu": 0.001,
+        "compute_time": 11.020178345032036,
+        "error": 0.0033428724475601523
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceUpwindDiscretizer, integrator=RK4Integrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceUpwindDiscretizer",
+        "integrator": "RK4Integrator",
+        "nu": 1e-05,
+        "compute_time": 10.98138110106811,
+        "error": 0.003156028908311237
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceUpwindDiscretizer, integrator=SemiImplicitIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceUpwindDiscretizer",
+        "integrator": "SemiImplicitIntegrator",
+        "nu": 0.001,
+        "compute_time": 64.45336010539904,
+        "error": 0.0037244306066619437
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteDifferenceUpwindDiscretizer, integrator=SemiImplicitIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteDifferenceUpwindDiscretizer",
+        "integrator": "SemiImplicitIntegrator",
+        "nu": 1e-05,
+        "compute_time": 41.112977302167565,
+        "error": 0.0031723967769567984
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=EulerIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteVolumeDiscretizer",
+        "integrator": "EulerIntegrator",
+        "nu": 0.001,
+        "compute_time": 32.531298640184104,
+        "error": 4.666644697293165e-05
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=EulerIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteVolumeDiscretizer",
+        "integrator": "EulerIntegrator",
+        "nu": 1e-05,
+        "compute_time": 10.776361143682152,
+        "error": 0.0006799681897224907
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteVolumeDiscretizer",
+        "integrator": "PredictorCorrectorIntegrator",
+        "nu": 0.001,
+        "compute_time": 10.54908352997154,
+        "error": 0.00032714959338697724
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteVolumeDiscretizer",
+        "integrator": "PredictorCorrectorIntegrator",
+        "nu": 1e-05,
+        "compute_time": 10.094504574779421,
+        "error": 0.0006174009581314532
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=RK4Integrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteVolumeDiscretizer",
+        "integrator": "RK4Integrator",
+        "nu": 0.001,
+        "compute_time": 10.823610380291939,
+        "error": 0.00023099151466654533
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=RK4Integrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteVolumeDiscretizer",
+        "integrator": "RK4Integrator",
+        "nu": 1e-05,
+        "compute_time": 10.81990191526711,
+        "error": 0.0007462006906671093
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=SemiImplicitIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteVolumeDiscretizer",
+        "integrator": "SemiImplicitIntegrator",
+        "nu": 0.001,
+        "compute_time": 15.892585868947208,
+        "error": 0.0017455679769939891
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=True, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=SemiImplicitIntegrator, poisson=BaseProjectionSolver)",
+        "discretizer": "FiniteVolumeDiscretizer",
+        "integrator": "SemiImplicitIntegrator",
+        "nu": 1e-05,
+        "compute_time": 15.717412671074271,
+        "error": 0.0007319708897772781
+    }
+]
