@@ -1,0 +1,50 @@
+[
+    {
+        "solver": "NavierStokesSolver2D(adaptive=False, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "dt": 0.001,
+        "nu": 0.001,
+        "end_time": 0.3,
+        "compute_time": 77.64365926431492,
+        "error": 0.0005602605980590258
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=False, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "dt": 0.002,
+        "nu": 0.001,
+        "end_time": 0.3,
+        "compute_time": 0.14873003121465445,
+        "error": 0.0025146235376678483
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=False, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "dt": 0.004,
+        "nu": 0.001,
+        "end_time": 0.3,
+        "compute_time": 0.07446616096422076,
+        "error": 0.008746399927512138
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=False, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "dt": 0.008,
+        "nu": 0.001,
+        "end_time": 0.3,
+        "compute_time": 0.03795811301097274,
+        "error": 0.021412258832889552
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=False, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "dt": 0.012,
+        "nu": 0.001,
+        "end_time": 0.3,
+        "compute_time": 0.02527605602517724,
+        "error": 0.034771065468654605
+    },
+    {
+        "solver": "NavierStokesSolver2D(adaptive=False, grid=(41x41), scheme=FiniteVolumeDiscretizer, integrator=PredictorCorrectorIntegrator, poisson=BaseProjectionSolver)",
+        "dt": 0.05,
+        "nu": 0.001,
+        "end_time": 0.3,
+        "compute_time": 0.006571938283741474,
+        "error": 0.19152763291438424
+    }
+]
