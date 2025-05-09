@@ -1,5 +1,21 @@
+from ns2d import (
+    BaseProjectionSolver,
+    FiniteDifferenceDiscretizer,
+    FiniteDifferenceUpwindDiscretizer,
+    FiniteVolumeDiscretizer,
+    EulerIntegrator,
+    PredictorCorrectorIntegrator,
+    RK4Integrator,
+    SemiImplicitIntegrator
+)
 
+BENCHMARK = "Taylor-Green Vortex"
 N_STEPS = 10000
+FIXED_DT = True
+CFL_BASED = True
+NX, NY = 41, 41
+DX, DY = 2.0 / (NX - 1), 2.0 / (NY - 1)
+
 
 rhs_options = [
     FiniteDifferenceDiscretizer(),
@@ -12,7 +28,6 @@ lhs_options = [
     RK4Integrator(),
     SemiImplicitIntegrator(),
 ]
-benchmark_options = ["Taylor-Green Vortex", "Lid-Driven Cavity"]
 nu_options = [1e-3, 1e-5]
 
-# Run for all and get the combinations
+# Run for all combinations and get the compute time and error
