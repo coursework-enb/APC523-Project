@@ -322,9 +322,9 @@ class NavierStokesSolver2D(ABC):
     def integrate(
         self,
         num_steps: int | None = None,
-        end_time: float | None = 2.5,
-        benchmark: str | None = "Lid-Driven Cavity",
-        cfl_based: bool = True,
+        end_time: float | None = None,
+        benchmark: str | None = None,
+        cfl_based: bool = False,
         cfl_adapt: bool = False,
     ) -> tuple[list[float], list[float], float] | tuple[list[float], list[float]]:
         """Run the simulation for a specified number of time steps.

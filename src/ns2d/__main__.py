@@ -168,9 +168,7 @@ def main():
         configs.append([r_choice, l_choice, n_choice, f_choice, dt_choice, b_choice])
 
     num_configs = len(configs)
-    print(
-        f"Number of configurations to run: {num_configs} (estimated time: {num_configs * 0.5:.2f} seconds with dummy funcs)"
-    )
+    print(f"Number of configurations to run: {num_configs}")
     logging.info(f"Total number of configurations to run: {num_configs}")
 
     results_dir = f"simulation_results_{timestamp_str}"

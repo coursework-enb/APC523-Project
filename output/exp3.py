@@ -2,6 +2,9 @@ import time
 import itertools
 import json
 
+from numba import set_num_threads
+set_num_threads(15)
+
 from ns2d import (
     BaseProjectionSolver,
     FiniteDifferenceDiscretizer,
