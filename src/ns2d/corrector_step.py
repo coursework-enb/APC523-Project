@@ -22,7 +22,7 @@ def divergence(u: Grid2D, v: Grid2D, dx: float, dy: float) -> Grid2D:
     nx, ny = u.shape
     div = np.zeros_like(u)
 
-    # Interior points
+    # Use second-order central differences for the interior points
     for i in prange(1, nx - 1):
         for j in range(1, ny - 1):
             div[i, j] = (u[i + 1, j] - u[i - 1, j]) / (2 * dx) + (
@@ -73,9 +73,72 @@ def velocity_correction(
     return u_corr, v_corr
 
 
+@njit(parallel=True)
+def apply_semi_implicit_diffusion(
+    velocity: Grid2D, nu: float, dt: float, dx: float
+) -> Grid2D:
+    nx, ny = velocity.shape
+    result = velocity.copy()
+    alpha = nu * dt
+    for i in prange(1, nx - 1):
+        for j in range(1, ny - 1):
+            lap = (
+                velocity[i + 1, j]
+                + velocity[i - 1, j]
+                + velocity[i, j + 1]
+                + velocity[i, j - 1]
+                - 4 * velocity[i, j]
+            ) / dx**2
+            result[i, j] += alpha * lap
+    return result
+
+
+def semi_implicit_velocity_update(
+    u_star: Grid2D, v_star: Grid2D, p: Grid2D, dx: float, dy: float, dt: float, nu: float
+) -> tuple[Grid2D, Grid2D]:
+    u_corr, v_corr = velocity_correction(u_star, v_star, p, dx, dy, dt)
+    u_new = apply_semi_implicit_diffusion(u_corr, nu, dt, dx)
+    v_new = apply_semi_implicit_diffusion(v_corr, nu, dt, dx)
+    return u_new, v_new
+
+
 # ------------------------
 # Multigrid Poisson Solver
 # ------------------------
+
+
+@njit(fastmath=True)
+def pressure_poisson_jacobi(
+    p_initial: np.ndarray, b: np.ndarray, dx: float, dy: float, nit: int
+) -> Grid2D:
+    """
+    Solves the 2D pressure Poisson equation using the Jacobi iterative method.
+    ∇²p = b
+    :return: The calculated pressure field after nit iterations.
+    """
+    ny, nx = p_initial.shape
+    p = p_initial.copy()
+    pn = np.empty_like(p)
+
+    dx2 = dx * dx
+    dy2 = dy * dy
+    denom = 2.0 * (dx2 + dy2)
+    assert denom != 0
+
+    term_b_multiplier = (dx2 * dy2) / denom
+
+    for _ in range(nit):
+        pn = p.copy()
+
+        # Update interior points using values from pn
+        for i in range(1, ny - 1):
+            for j in range(1, nx - 1):
+                p[i, j] = (
+                    (pn[i, j + 1] + pn[i, j - 1]) * dy2
+                    + (pn[i + 1, j] + pn[i - 1, j]) * dx2
+                ) / denom - term_b_multiplier * b[i, j]
+
+    return p
 
 
 def pressure_poisson_multigrid(
@@ -168,5 +231,35 @@ class GaussSeidelSolver(NavierStokesSolver2D):
         """
         self.u, self.v = velocity_correction(
             self.u, self.v, self.p, self.dx, self.dy, self.dt
+        )
+        self._apply_bc(p=False)
+
+
+class GSSolverSemiImplicitCorr(NavierStokesSolver2D):
+    def solve_poisson(self) -> None:
+        """
+        Apply multigrid Poisson solver with Gauss-Seidel smoother to update pressure,
+        using semi-implicit correction instead.
+        """
+        rhs = divergence(self.u, self.v, self.dx, self.dy) / self.dt
+
+        if self.bc_case == 1:  # Periodic BC
+            rhs[0, :] = rhs[-2, :]
+            rhs[-1, :] = rhs[1, :]
+            rhs[:, 0] = rhs[:, -2]
+            rhs[:, -1] = rhs[:, 1]
+        # Note: For case 2, we keep one-sided difference approximation
+
+        self.p = pressure_poisson_multigrid(
+            rhs, self.dx, self.dy, smoother="gauss_seidel"
+        )
+        self._apply_bc(uv=False)
+
+    def update_velocity(self) -> None:
+        """
+        Update velocity field using pressure gradient correction.
+        """
+        self.u, self.v = semi_implicit_velocity_update(
+            self.u, self.v, self.p, self.dx, self.dy, self.dt, self.nu
         )
         self._apply_bc(p=False)

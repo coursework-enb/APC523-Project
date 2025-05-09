@@ -19,6 +19,7 @@
 #   - adaptive dt with cfl-adaptation and default target of 0.2 leads to pre-Poisson failure
 #   - adaptive dt with cfl-adaptation and target of 0.01 runs without NaNs and provides a good solution
 #   - fixed dt with cfl-based (target 0.01) dt runs without NaNs but does not give as good of a solution
+#     and it fails for self.dt to small (1e-5) but works for higher self.dt !
 
 # Note: all failures are within the first 100 steps and we seem to get the same with
 # GaussSeidelSolver, SemiImplicitIntegrator, FiniteDifferenceUpwindDiscretizer
@@ -449,7 +450,7 @@ class NavierStokesSolver2D(ABC):
 
             progress_bar.update(1)
 
-            # self.dt = current_dt  # Issue is exactly here, uncommenting it leads to systematic failure!
+            self.dt = current_dt  # Issue is exactly here, uncommenting it leads to systematic failure!
             # print(f"Currend dt: {current_dt} / self.dt: {self.dt} / CFL {current_cfl}")
 
         progress_bar.close()
