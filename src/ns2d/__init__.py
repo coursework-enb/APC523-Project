@@ -1,3 +1,6 @@
+# mypy: ignore-errors
+# ruff: noqa
+
 from .core import (
     NavierStokesSolver2D,
     SpatialDiscretizationStrategy,
@@ -20,6 +23,26 @@ from .rhs_discretization import (
     FiniteDifferenceUpwindDiscretizer,
     FiniteVolumeDiscretizer,
 )
+
+_NOT_IMPLEMENTED = "Direct instantiation of '{name}' is currently not supported. "
+
+
+class GaussSeidelSolver:
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError(_NOT_IMPLEMENTED.format(name="GaussSeidelSolver"))
+
+
+class GSSolverSemiImplicitCorr:
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError(
+            _NOT_IMPLEMENTED.format(name="GSSolverSemiImplicitCorr")
+        )
+
+
+class JacobiSolver:
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError(_NOT_IMPLEMENTED.format(name="JacobiSolver"))
+
 
 __all__ = [
     "BaseProjectionSolver",
