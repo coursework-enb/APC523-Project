@@ -4,26 +4,6 @@
 # - Define a proper default initialization (when no benchmark) + manual init
 # - For central differences make the choice of order more flexible like in ns2d/vorticity.py
 
-# Diagnosis using
-# - JacobiSolver with SemiImplicitIntegrator and FiniteDifferenceDiscretizer
-# - TGV over 10000 steps
-
-# We get an error for fixed dt, cfl-based dt, adaptive dt with either options
-#   - fixed dt = 0.01, 0.001, 1e-05 or 1e-08 leads to pre-Poisson failure
-#   - fixed cfl-based dt with target = 0.2 or 0.01 leads to failure
-#   - adaptive dt with cfl_adapt (both default and 0.01 target) leads to pre-Poisson failure
-#   - adaptive dt without cfl_adapt leads to pre-Poisson failure
-
-# If now self.dt is NOT updated (in comment), hence when it does not apply to corrector step we get:
-#   - adaptive dt without cfl-adaptive strategy works very well
-#   - adaptive dt with cfl-adaptation and default target of 0.2 leads to pre-Poisson failure
-#   - adaptive dt with cfl-adaptation and target of 0.01 runs without NaNs and provides a good solution
-#   - fixed dt with cfl-based (target 0.01) dt runs without NaNs but does not give as good of a solution
-#     and it fails for self.dt to small (1e-5) but works for higher self.dt !
-
-# Note: all failures are within the first 100 steps and we seem to get the same with
-# GaussSeidelSolver, SemiImplicitIntegrator, FiniteDifferenceUpwindDiscretizer
-
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -359,7 +339,6 @@ class NavierStokesSolver2D(ABC):
 
         current_time = 0.0
         step = 0
-        current_dt = self.dt
 
         max_steps: int | float = num_steps if num_steps is not None else float("inf")
         end_time = end_time if end_time is not None else float("inf")
@@ -373,7 +352,7 @@ class NavierStokesSolver2D(ABC):
 
         while current_time < end_time and step < max_steps:
             # Ensure we don't overshoot the end time
-            current_dt = min(current_dt, end_time - current_time)
+            self.dt = min(self.dt, end_time - current_time)
 
             u_prev = self.u.copy()
             v_prev = self.v.copy()
@@ -383,18 +362,12 @@ class NavierStokesSolver2D(ABC):
                 self.u,
                 self.v,
                 self.p,
-                current_dt,
+                self.dt,
                 self.discrete_navier_stokes,
                 self.dx,
                 self.dy,
                 self.nu,
                 self.bc_case,
-            )
-
-            self._fail_fast(
-                step,
-                prepend_message=f"Validation failed at step {step} pre-Poisson with the following error(s):",
-                append_message=f" and current_dt={current_dt}",
             )
 
             # Enforce incompressibility
@@ -405,20 +378,16 @@ class NavierStokesSolver2D(ABC):
             current_cfl = self._estimate_cfl()
             if not self.fixed_dt:
                 if cfl_adapt:
-                    # DEBUG: Produces NaN
                     dt_new, accept = cfl_adapt_time_step(
-                        current_cfl, current_dt, self.min_dt, self.max_dt, self.target_CFL
+                        current_cfl, self.dt, self.min_dt, self.max_dt, self.target_CFL
                     )
-                    # raise NotImplementedError(
-                    #     "CFL-adaptive time step needs to be debugged"
-                    # )
                 else:
                     dt_new, accept = adapt_time_step(
                         u_prev,
                         v_prev,
                         self.u,
                         self.v,
-                        current_dt,
+                        self.dt,
                         self.min_dt,
                         self.max_dt,
                         self.tol,
@@ -427,12 +396,12 @@ class NavierStokesSolver2D(ABC):
                     # If strong adaptive is enabled and step is rejected, revert and retry
                     self.u = u_prev
                     self.v = v_prev
-                    current_dt = dt_new
+                    self.dt = dt_new
                     continue
-                current_dt = dt_new
+                self.dt = dt_new
             elif cfl_based:
-                current_dt = self._cfl_time()
-            # Else keep current_dt
+                self.dt = self._cfl_time()
+            # Else keep current dt
 
             # Record
             cfl_values.append(current_cfl)
@@ -440,18 +409,14 @@ class NavierStokesSolver2D(ABC):
 
             self._fail_fast(
                 step,
-                prepend_message=f"Validation failed at step {step} post-Poisson with the following error(s):",
-                append_message=f" and current_dt={current_dt}",
+                prepend_message=f"Validation failed at step {step} with the following error(s):",
             )
 
             # Advance time and step counter
-            current_time += current_dt
+            current_time += self.dt
             step += 1
 
             progress_bar.update(1)
-
-            self.dt = current_dt  # Issue is exactly here, uncommenting it leads to systematic failure!
-            # print(f"Currend dt: {current_dt} / self.dt: {self.dt} / CFL {current_cfl}")
 
         progress_bar.close()
 
