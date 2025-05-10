@@ -1,3 +1,6 @@
+# TODO: Implement actual Crank-Nicolson, which is second order in time, for the
+# semi-implicit scheme (instead of backward Euler)
+
 from typing import cast
 
 import numpy as np
@@ -70,7 +73,7 @@ def jacobi_diffusion_solver(
     velocity: Grid2D, nu: float, dt: float, dx: float, dy: float, max_iter: int = 20
 ) -> Grid2D:
     """
-    Jacobi solver for implicit diffusion terms.
+    Jacobi solver for implicit diffusion terms, approximating the solution to the equation (I - dt * ν/2 * ∇²) u* = RHS
     Numba-optimized implementation.
     """
     nx, ny = velocity.shape
