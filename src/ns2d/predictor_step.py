@@ -1,5 +1,10 @@
 # TODO: Implement actual Crank-Nicolson, which is second order in time, for the
-# semi-implicit scheme (instead of backward Euler)
+# semi-implicit scheme (instead of backward Euler):
+#     (u* - u^n) / dt = - (u^n ⋅ ∇)u^n + ν/2 * (∇²u^n + ∇²u*)
+# Rearranging for u*:
+#     u* - dt * ν/2 * ∇²u* = u^n - dt * (u^n ⋅ ∇)u^n + dt * ν/2 * ∇²u^n
+#     (I - dt * ν/2 * ∇²)u* = RHS
+# This results in a Helmholtz-type equation for u*.
 
 from typing import cast
 
