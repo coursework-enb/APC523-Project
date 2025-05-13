@@ -1,4 +1,6 @@
-# Installation
+# 2D Navier-Stokes Numerical Solver
+
+## Installation
 
 For development purposes
 
@@ -24,7 +26,7 @@ For development purposes
   npm install --save-dev prettier@4.0.0-alpha.8 prettier-plugin-latex
   ```
 
-# Programming Tips
+## Programming Tips
 
 - Numerical tools:
   - Use `scipy.fft` or pyFFTW for speed-critical FFTs
