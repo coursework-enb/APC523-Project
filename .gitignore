@@ -10,6 +10,15 @@
 # Allow directory structure but not files
 !.*/
 
+# Folder Specific
+# ---------------
+notebooks/*
+!notebooks/*.ipynb
+!notebooks/*.html
+md/*
+!md/*.md
+tex/*
+!tex/*.tex
 
 # Operating System Files
 # ----------------------
